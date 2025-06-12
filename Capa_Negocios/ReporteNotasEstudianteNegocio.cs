@@ -163,5 +163,22 @@ namespace Capa_Negocios
             }
             return tabla;
         }
+        public DataTable GenerarReporteMaterias(int idEstudiante)
+        {
+            DataTable tabla = new DataTable();
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand("sp_GenerarReporteMateriasEstudiante", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@ID_Estudiante", idEstudiante);
+                    cmd.CommandTimeout = 30;
+                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                    adapter.Fill(tabla);
+                }
+            }
+            return tabla;
+        }
     }
 }

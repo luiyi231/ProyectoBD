@@ -192,29 +192,37 @@
                     </Border>
 
                     <!-- Elementos del menú -->
-                    <Button Content="Inscripción de Materias" 
-                            Tag="📝" 
+                    <Button Content="Inscripción" 
+                            Tag="" 
                             Style="{StaticResource MenuItemStyle}"
                             Click="BtnInscripcion_Click"
                             Margin="10,5"/>
 
                     <Button Content="Reporte de Materias" 
-                            Tag="📊" 
+                            Tag="" 
                             Style="{StaticResource MenuItemStyle}"
                             Click="BtnReporteMaterias_Click"
                             Margin="10,5"/>
 
                     <Button Content="Reporte de Asistencia" 
-                            Tag="📅" 
+                            Tag="" 
                             Style="{StaticResource MenuItemStyle}"
                             Click="BtnReporteAsistencia_Click"
                             Margin="10,5"/>
 
                     <Button Content="Notas del Estudiante" 
-                            Tag="🎯" 
+                            Tag="" 
+                            Style="{StaticResource MenuItemStyle}"
+                            Click="BtnReporteNotase_Click"
+                            Margin="10,5"/>
+
+                    <Button Content="Estudiante Boletin" 
+                            Tag="" 
                             Style="{StaticResource MenuItemStyle}"
                             Click="BtnReporteNotasEstudiante_Click"
                             Margin="10,5"/>
+                    
+
 
                     <!-- Separador -->
                     <Separator Background="#34495E" 

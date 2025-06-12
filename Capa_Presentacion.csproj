@@ -67,6 +67,9 @@
     <Compile Include="ReporteNotasEstudiante.xaml.cs">
       <DependentUpon>ReporteNotasEstudiante.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ReportesNotas.xaml.cs">
+      <DependentUpon>ReportesNotas.xaml</DependentUpon>
+    </Compile>
     <Page Include="Inscripcion.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -92,6 +95,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ReporteNotasEstudiante.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ReportesNotas.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

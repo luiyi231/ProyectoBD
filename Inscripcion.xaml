@@ -232,15 +232,9 @@
                         <Button x:Name="btnModificar" Content="✏️ Modificar" Width="100" 
                         Click="btnModificar_Click" Style="{StaticResource ModernButton}"/>
 
-                        <Button x:Name="btnNuevo" Content="🆕 Nuevo" Width="100" 
+                    <Button x:Name="btnNuevo" Content="🆕 Nuevo" Width="100" 
                          Style="{StaticResource ModernButton}"/>
-                        <Button x:Name="btnReport" Content="🆕 Nuevo" Width="100" 
-                Style="{StaticResource ModernButton}" Click="btnReport_Click"/>
-                        <Button x:Name="btnAsistencia" Content="🆕 Nuevo" Width="100" 
-                Style="{StaticResource ModernButton}" Click="btnAsistencia_Click"/>
-                        <Button x:Name="btnnota" Content="🆕 Nuevo" Width="100" 
-                Style="{StaticResource ModernButton}" Click="btnnota_Click"/>
-                    </StackPanel>
+                </StackPanel>
                 </Border>
             </Grid>
         </Border>

@@ -186,6 +186,12 @@ namespace Capa_Presentacion
             CloseMenu();
             AnimateContentChange();
         }
+        private void BtnReporteNotase_Click(object sender, RoutedEventArgs e)
+        {
+            Contenido.Content = new ReportesNotas();
+            CloseMenu();
+            AnimateContentChange();
+        }
 
         private void AnimateContentChange()
         {

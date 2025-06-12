@@ -328,17 +328,5 @@ namespace ProyectoBD
             objInscripcion = new Inscripcion();
         }
 
-        private void btnReport_Click(object sender, RoutedEventArgs e)
-        {
-        }
-
-        private void btnAsistencia_Click(object sender, RoutedEventArgs e)
-        {
-           
-        }
-
-        private void btnnota_Click(object sender, RoutedEventArgs e)
-        {
-        }
     }
 }
