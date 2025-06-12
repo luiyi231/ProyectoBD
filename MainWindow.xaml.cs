@@ -1,336 +1,208 @@
 ﻿using Capa_Negocios;
+using ProyectoBD;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media.Animation;
 
 namespace Capa_Presentacion
 {
     public partial class MainWindow : Window
     {
-        Inscripcion objInscripcion = new Inscripcion();
+        private bool isMenuOpen = false;
 
         public MainWindow()
         {
             InitializeComponent();
-            Loaded += MainWindow_Load;
+
+            // Configurar atajos de teclado
+            this.KeyDown += MainWindow_KeyDown;
+
+            // Mostrar página de inicio por defecto
+            ShowWelcomePage();
         }
 
-        private void MainWindow_Load(object sender, RoutedEventArgs e)
+        private void ShowWelcomePage()
         {
-            Gestion objGestion = new Gestion();
-            cbGestion.ItemsSource = objGestion.ObtenerTodas().DefaultView;
-            cbGestion.DisplayMemberPath = "Gestion";
-            cbGestion.SelectedValuePath = "codGestion";
-            cbGestion.SelectedIndex = -1;
-        }
-
-        private void btnBuscar_Click(object sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(txtRegistro.Text) || cbGestion.SelectedIndex == -1)
+            // Crear una página de bienvenida
+            var welcomePanel = new StackPanel
             {
-                MessageBox.Show("Debe ingresar el registro del estudiante y seleccionar una gestión.");
-                return;
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
+            var welcomeIcon = new TextBlock
+            {
+                Text = "🎓",
+                FontSize = 72,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(0, 0, 0, 20)
+            };
+
+            var welcomeTitle = new TextBlock
+            {
+                Text = "Bienvenido al Sistema de Gestión",
+                FontSize = 28,
+                FontWeight = FontWeights.Bold,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(0, 0, 0, 10)
+            };
+
+            var welcomeSubtitle = new TextBlock
+            {
+                Text = "Selecciona una opción del menú para comenzar",
+                FontSize = 16,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Opacity = 0.7
+            };
+
+            var instructionText = new TextBlock
+            {
+                Text = "💡 Presiona el botón ☰ o usa Ctrl+M para abrir el menú",
+                FontSize = 14,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(0, 30, 0, 0),
+                Opacity = 0.6
+            };
+
+            welcomePanel.Children.Add(welcomeIcon);
+            welcomePanel.Children.Add(welcomeTitle);
+            welcomePanel.Children.Add(welcomeSubtitle);
+            welcomePanel.Children.Add(instructionText);
+
+            Contenido.Content = welcomePanel;
+        }
+
+        private void MainWindow_KeyDown(object sender, KeyEventArgs e)
+        {
+            // Atajo Ctrl+M para abrir/cerrar menú
+            if (e.Key == Key.M && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                ToggleMenu();
             }
-
-            int idEstudiante = int.Parse(txtRegistro.Text);
-            int codGestion = Convert.ToInt32(cbGestion.SelectedValue);
-
-            Estudiante objEst = new Estudiante { IdEstudiante = idEstudiante };
-            lblNombre.Text = objEst.ObtenerNombreCompleto();
-
-            objInscripcion.IdEstudiante = idEstudiante;
-
-            lstMateriasInscritas.ItemsSource = objInscripcion.ObtenerMateriasInscritas(codGestion).DefaultView;
-            lstMateriasInscritas.DisplayMemberPath = "Materia";
-            lstMateriasInscritas.SelectedValuePath = "codEd";
-
-            CargarMateriasOfertadas();
+            // Escape para cerrar menú
+            else if (e.Key == Key.Escape && isMenuOpen)
+            {
+                CloseMenu();
+            }
         }
 
-        private void CargarMateriasOfertadas()
+        private void BtnMenu_Click(object sender, RoutedEventArgs e)
         {
-            int idEstudiante = int.Parse(txtRegistro.Text);
-            int codGestion = Convert.ToInt32(cbGestion.SelectedValue);
+            ToggleMenu();
+        }
 
-            objInscripcion.IdEstudiante = idEstudiante;
-
-            try
+        private void ToggleMenu()
+        {
+            if (isMenuOpen)
             {
-                DataTable tabla = objInscripcion.ObtenerMateriasOfertadas(codGestion);
+                CloseMenu();
+            }
+            else
+            {
+                OpenMenu();
+            }
+        }
 
-                // SOLUCIÓN: Agregar la columna Seleccionar al DataTable
-                if (!tabla.Columns.Contains("Seleccionar"))
+        private void OpenMenu()
+        {
+            if (!isMenuOpen)
+            {
+                SideMenu.Visibility = Visibility.Visible;
+                Overlay.Visibility = Visibility.Visible;
+
+                // Animación del overlay
+                var overlayAnimation = new DoubleAnimation(0, 0.3, TimeSpan.FromMilliseconds(300));
+                Overlay.BeginAnimation(UIElement.OpacityProperty, overlayAnimation);
+
+                // Animación del menú
+                var slideIn = (Storyboard)this.Resources["SlideInMenu"];
+                slideIn.Begin(SideMenu);
+
+                isMenuOpen = true;
+            }
+        }
+
+        private void CloseMenu()
+        {
+            if (isMenuOpen)
+            {
+                // Animación del overlay
+                var overlayAnimation = new DoubleAnimation(0.3, 0, TimeSpan.FromMilliseconds(300));
+                overlayAnimation.Completed += (s, e) =>
                 {
-                    tabla.Columns.Add("Seleccionar", typeof(bool));
-                    // Inicializar todos los valores como false
-                    foreach (DataRow row in tabla.Rows)
-                    {
-                        row["Seleccionar"] = false;
-                    }
-                }
-
-                // Limpiar columnas existentes del DataGrid
-                dgvMateriasOfertadas.Columns.Clear();
-
-                // Asignar el DataSource
-                dgvMateriasOfertadas.ItemsSource = tabla.DefaultView;
-                dgvMateriasOfertadas.AutoGenerateColumns = true;
-
-                // Configurar la columna de selección para que aparezca primero
-                dgvMateriasOfertadas.LoadingRow += (s, e) =>
-                {
-                    // Este evento se ejecuta cuando se cargan las filas
+                    Overlay.Visibility = Visibility.Collapsed;
                 };
+                Overlay.BeginAnimation(UIElement.OpacityProperty, overlayAnimation);
 
-                // Alternativa: Configurar columnas manualmente
-                ConfigurarColumnasDataGrid(tabla);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error al cargar materias ofertadas: " + ex.Message);
+                // Animación del menú
+                var slideOut = (Storyboard)this.Resources["SlideOutMenu"];
+                slideOut.Completed += (s, e) =>
+                {
+                    SideMenu.Visibility = Visibility.Collapsed;
+                };
+                slideOut.Begin(SideMenu);
+
+                isMenuOpen = false;
             }
         }
 
-        private void ConfigurarColumnasDataGrid(DataTable tabla)
+        private void Overlay_Click(object sender, MouseButtonEventArgs e)
         {
-            dgvMateriasOfertadas.AutoGenerateColumns = false;
-            dgvMateriasOfertadas.Columns.Clear();
+            CloseMenu();
+        }
 
-            // Columna de selección (Checkbox)
-            DataGridCheckBoxColumn chkColumn = new DataGridCheckBoxColumn
+        // Métodos para los botones del menú
+        private void BtnInscripcion_Click(object sender, RoutedEventArgs e)
+        {
+            Contenido.Content = new InscripcionUser();
+            CloseMenu();
+
+            // Efecto visual al seleccionar opción
+            AnimateContentChange();
+        }
+
+        private void BtnReporteMaterias_Click(object sender, RoutedEventArgs e)
+        {
+            Contenido.Content = new ReporteMaterias1();
+            CloseMenu();
+            AnimateContentChange();
+        }
+
+        private void BtnReporteAsistencia_Click(object sender, RoutedEventArgs e)
+        {
+            Contenido.Content = new ReporteAsistencia1();
+            CloseMenu();
+            AnimateContentChange();
+        }
+
+        private void BtnReporteNotasEstudiante_Click(object sender, RoutedEventArgs e)
+        {
+            Contenido.Content = new ReporteNotasEstudiante();
+            CloseMenu();
+            AnimateContentChange();
+        }
+
+        private void AnimateContentChange()
+        {
+            // Animación suave al cambiar contenido
+            var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(150));
+            fadeOut.Completed += (s, e) =>
             {
-                Header = "Seleccionar",
-                Binding = new System.Windows.Data.Binding("Seleccionar"),
-                Width = 100
+                var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(200));
+                Contenido.BeginAnimation(UIElement.OpacityProperty, fadeIn);
             };
-            dgvMateriasOfertadas.Columns.Add(chkColumn);
-
-            // Columna de Materia
-            DataGridTextColumn materiaColumn = new DataGridTextColumn
-            {
-                Header = "Materia",
-                Binding = new System.Windows.Data.Binding("Materia"),
-                Width = 200,
-                IsReadOnly = true
-            };
-            dgvMateriasOfertadas.Columns.Add(materiaColumn);
-
-            // Columna de Grupo
-            DataGridTextColumn grupoColumn = new DataGridTextColumn
-            {
-                Header = "Grupo",
-                Binding = new System.Windows.Data.Binding("Grupo"),
-                Width = 100,
-                IsReadOnly = true
-            };
-            dgvMateriasOfertadas.Columns.Add(grupoColumn);
-
-            // Columna de Docente
-            DataGridTextColumn docenteColumn = new DataGridTextColumn
-            {
-                Header = "Docente",
-                Binding = new System.Windows.Data.Binding("Docente"),
-                Width = 200,
-                IsReadOnly = true
-            };
-            dgvMateriasOfertadas.Columns.Add(docenteColumn);
-
-            // Columna oculta para codEd
-            DataGridTextColumn codEdColumn = new DataGridTextColumn
-            {
-                Header = "codEd",
-                Binding = new System.Windows.Data.Binding("codEd"),
-                Visibility = Visibility.Hidden
-            };
-            dgvMateriasOfertadas.Columns.Add(codEdColumn);
+            Contenido.BeginAnimation(UIElement.OpacityProperty, fadeOut);
         }
 
-        private void btnInscribir_Click(object sender, RoutedEventArgs e)
+        // Método para manejar el cierre de la ventana
+        protected override void OnClosed(EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtRegistro.Text) || cbGestion.SelectedIndex == -1)
-            {
-                MessageBox.Show("Debe ingresar el registro del estudiante y la gestión.");
-                return;
-            }
-
-            int idEstudiante = int.Parse(txtRegistro.Text);
-            objInscripcion.IdEstudiante = idEstudiante;
-
-            List<int> materiasSeleccionadas = new List<int>();
-
-            // SOLUCIÓN MEJORADA: Verificar que ItemsSource no sea null
-            if (dgvMateriasOfertadas.ItemsSource != null)
-            {
-                foreach (DataRowView row in dgvMateriasOfertadas.ItemsSource)
-                {
-                    if (row.Row.Table.Columns.Contains("Seleccionar") &&
-                        row["Seleccionar"] != DBNull.Value &&
-                        (bool)row["Seleccionar"] == true)
-                    {
-                        materiasSeleccionadas.Add(Convert.ToInt32(row["codEd"]));
-                    }
-                }
-            }
-
-            if (materiasSeleccionadas.Count == 0)
-            {
-                MessageBox.Show("Debe seleccionar al menos una materia.");
-                return;
-            }
-            else if (materiasSeleccionadas.Count > 6)
-            {
-                MessageBox.Show("No puede inscribirse en más de 6 materias.");
-                return;
-            }
-
-            string listaCodEd = string.Join(",", materiasSeleccionadas);
-
-            try
-            {
-                bool exito = objInscripcion.Inscribir(listaCodEd);
-                if (exito)
-                {
-                    MessageBox.Show("Materias inscritas correctamente.");
-                    btnBuscar_Click(null, null);
-                }
-                else
-                {
-                    MessageBox.Show("No se pudo inscribir al estudiante.");
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error al inscribir: " + ex.Message);
-            }
-        }
-
-        private void btnEliminar_Click(object sender, RoutedEventArgs e)
-        {
-            if (lstMateriasInscritas.SelectedIndex == -1)
-            {
-                MessageBox.Show("Debe seleccionar una materia para eliminar.");
-                return;
-            }
-
-            int idEstudiante = int.Parse(txtRegistro.Text);
-            objInscripcion.IdEstudiante = idEstudiante;
-
-            int codEd = Convert.ToInt32(lstMateriasInscritas.SelectedValue);
-
-            if (MessageBox.Show("¿Está seguro que desea eliminar esta inscripción?", "Confirmar", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-            {
-                try
-                {
-                    objInscripcion.CodEd = codEd;
-                    bool exito = objInscripcion.Eliminar();
-                    if (exito)
-                    {
-                        MessageBox.Show("Inscripción eliminada correctamente.");
-                        btnBuscar_Click(null, null);
-                    }
-                    else
-                    {
-                        MessageBox.Show("No se pudo eliminar la inscripción.");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Error al eliminar inscripción: " + ex.Message);
-                }
-            }
-        }
-
-        private void btnModificar_Click(object sender, RoutedEventArgs e)
-        {
-            if (lstMateriasInscritas.SelectedIndex == -1)
-            {
-                MessageBox.Show("Seleccione una materia ya inscrita que desea modificar.");
-                return;
-            }
-
-            int idEstudiante = int.Parse(txtRegistro.Text);
-            objInscripcion.IdEstudiante = idEstudiante;
-
-            int codEdActual = Convert.ToInt32(lstMateriasInscritas.SelectedValue);
-            int? codEdNueva = null;
-
-            // SOLUCIÓN MEJORADA: Verificar que ItemsSource no sea null
-            if (dgvMateriasOfertadas.ItemsSource != null)
-            {
-                foreach (DataRowView row in dgvMateriasOfertadas.ItemsSource)
-                {
-                    if (row["Seleccionar"] != DBNull.Value && (bool)row["Seleccionar"] == true)
-                    {
-                        if (codEdNueva != null)
-                        {
-                            MessageBox.Show("Solo debe seleccionar una nueva materia para reemplazar.");
-                            return;
-                        }
-                        codEdNueva = Convert.ToInt32(row["codEd"]);
-                    }
-                }
-            }
-
-            if (codEdNueva == null)
-            {
-                MessageBox.Show("Debe seleccionar una nueva materia de reemplazo.");
-                return;
-            }
-
-            if (MessageBox.Show("¿Está seguro de reemplazar esta inscripción?", "Confirmar modificación", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-            {
-                try
-                {
-                    bool exito = objInscripcion.ActualizarEdicion(codEdActual, codEdNueva.Value);
-                    if (exito)
-                    {
-                        MessageBox.Show("Inscripción modificada correctamente.");
-                        btnBuscar_Click(null, null);
-                    }
-                    else
-                    {
-                        MessageBox.Show("No se pudo modificar la inscripción.");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Error al modificar inscripción: " + ex.Message);
-                }
-            }
-        }
-
-        private void btnNuevo_Click(object sender, RoutedEventArgs e)
-        {
-            txtRegistro.Clear();
-            cbGestion.SelectedIndex = -1;
-            lblNombre.Text = "";
-
-            lstMateriasInscritas.ItemsSource = null;
-            dgvMateriasOfertadas.ItemsSource = null;
-            dgvMateriasOfertadas.Columns.Clear();
-
-            objInscripcion = new Inscripcion();
-        }
-
-        private void btnReport_Click(object sender, RoutedEventArgs e)
-        {
-            ReporteMaterias ventanaReporte = new ReporteMaterias();
-            ventanaReporte.Show();
-        }
-
-        private void btnAsistencia_Click(object sender, RoutedEventArgs e)
-        {
-            ReporteAsistencia ventanaAsistencia = new ReporteAsistencia();
-            ventanaAsistencia.Show();
-        }
-
-        private void btnnota_Click(object sender, RoutedEventArgs e)
-        {
-            ReporteNotasEstudiante ventanaNotasEstudiante = new ReporteNotasEstudiante();
-            ventanaNotasEstudiante.Show();
+            base.OnClosed(e);
         }
     }
 }

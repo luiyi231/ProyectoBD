@@ -1,35 +1,31 @@
 ﻿<Window x:Class="Capa_Presentacion.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Sistema de Gestión de Estudiantes" Height="700" Width="1000"
+        Title="Sistema de Gestión de Estudiantes" Height="740" Width="1200"
         WindowStartupLocation="CenterScreen"
         Background="#F5F5F5">
 
     <Window.Resources>
-        <!-- Estilos para botones -->
-        <Style TargetType="Button" x:Key="ModernButton">
-            <Setter Property="Background" Value="#4A90E2"/>
-            <Setter Property="Foreground" Value="White"/>
+        <!-- Estilo para botón hamburguesa -->
+        <Style x:Key="HamburgerButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="15,8"/>
-            <Setter Property="Margin" Value="5"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                CornerRadius="5"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                BorderBrush="{TemplateBinding BorderBrush}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="8" 
+                                Padding="15,10">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#357ABD"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="Background" Value="#2E6DA4"/>
+                                <Setter Property="Background" Value="#ECF0F1"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -37,210 +33,213 @@
             </Setter>
         </Style>
 
-        <!-- Estilo para botón de búsqueda -->
-        <Style TargetType="Button" x:Key="SearchButton" BasedOn="{StaticResource ModernButton}">
-            <Setter Property="Background" Value="#5CB85C"/>
-            
+        <!-- Estilo para elementos del menú -->
+        <Style x:Key="MenuItemStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="20,15"/>
+            <Setter Property="Margin" Value="0,2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="6" 
+                                Margin="{TemplateBinding Margin}">
+                            <StackPanel Orientation="Horizontal" 
+                                      Margin="{TemplateBinding Padding}">
+                                <TextBlock Text="{TemplateBinding Tag}" 
+                                         FontFamily="Segoe MDL2 Assets" 
+                                         FontSize="16" 
+                                         VerticalAlignment="Center" 
+                                         Margin="0,0,15,0"/>
+                                <ContentPresenter VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#34495E"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
-        <!-- Estilo para botón eliminar -->
-        <Style TargetType="Button" x:Key="DeleteButton" BasedOn="{StaticResource ModernButton}">
-            <Setter Property="Background" Value="#D9534F"/>
-            
-        </Style>
+        <!-- Animaciones -->
+        <Storyboard x:Key="SlideInMenu">
+            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                           From="-250" To="0" Duration="0:0:0.3">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                           From="0" To="1" Duration="0:0:0.3"/>
+        </Storyboard>
 
-        <!-- Estilo para TextBox -->
-        <Style TargetType="TextBox">
-            <Setter Property="Padding" Value="8,5"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="#CCCCCC"/>
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-        </Style>
-
-        <!-- Estilo para ComboBox -->
-        <Style TargetType="ComboBox">
-            <Setter Property="Padding" Value="8,5"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="#CCCCCC"/>
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="FontSize" Value="12"/>
-        </Style>
-
-        <!-- Estilo para GroupBox -->
-        <Style TargetType="GroupBox">
-            <Setter Property="BorderBrush" Value="#DDDDDD"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="10"/>
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="#333333"/>
-        </Style>
-
-        <!-- Estilo para DataGrid -->
-        <Style TargetType="DataGrid">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#DDDDDD"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
-            <Setter Property="HorizontalGridLinesBrush" Value="#F0F0F0"/>
-            <Setter Property="AlternatingRowBackground" Value="#F9F9F9"/>
-            <Setter Property="RowBackground" Value="White"/>
-            <Setter Property="HeadersVisibility" Value="Column"/>
-            <Setter Property="CanUserReorderColumns" Value="False"/>
-            <Setter Property="CanUserResizeRows" Value="False"/>
-            <Setter Property="FontSize" Value="12"/>
-        </Style>
-
-        <!-- Estilo para ListBox -->
-        <Style TargetType="ListBox">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#DDDDDD"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="5"/>
-            <Setter Property="FontSize" Value="12"/>
-        </Style>
+        <Storyboard x:Key="SlideOutMenu">
+            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                           From="0" To="-250" Duration="0:0:0.3">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseIn"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                           From="1" To="0" Duration="0:0:0.3"/>
+        </Storyboard>
     </Window.Resources>
 
-    <Border Background="White" CornerRadius="8" Margin="15" 
-            BorderBrush="#DDDDDD" BorderThickness="1">
-        <Grid Margin="20">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="70"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-            <!-- Encabezado principal -->
-            <Border Grid.ColumnSpan="2" Background="#4A90E2" CornerRadius="5" Padding="15,10" Margin="0,0,0,20">
-                <TextBlock Text="Sistema de Inscripciones Académicas" 
-                           Foreground="White" FontSize="18" FontWeight="Bold" 
-                           HorizontalAlignment="Center"/>
-            </Border>
+        <!-- Header -->
+        <Border Grid.Row="0" Background="White" 
+                BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-            <!-- Fila 1: Formulario de búsqueda -->
-            <Border Grid.Row="1" Grid.ColumnSpan="2" Background="#F8F9FA" 
-                    BorderBrush="#DEE2E6" BorderThickness="1" CornerRadius="5" 
-                    Padding="15" Margin="0,0,0,15">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <StackPanel Orientation="Horizontal" Margin="0,0,30,0">
-                        <TextBlock Text="Registro Estudiante:" VerticalAlignment="Center" 
-                                   Margin="0,0,8,0" FontWeight="SemiBold" Foreground="#495057"/>
-                        <TextBox x:Name="txtRegistro" Width="120" Height="30"/>
-                    </StackPanel>
+                <!-- Botón hamburguesa -->
+                <Button x:Name="BtnMenu" 
+                        Grid.Column="0"
+                        Style="{StaticResource HamburgerButtonStyle}"
+                        Content="☰" 
+                        Click="BtnMenu_Click"
+                        Margin="20,0,0,0"/>
 
-                    <StackPanel Orientation="Horizontal" Margin="0,0,30,0">
-                        <TextBlock Text="Gestión:" VerticalAlignment="Center" 
-                                   Margin="0,0,8,0" FontWeight="SemiBold" Foreground="#495057"/>
-                        <ComboBox x:Name="cbGestion" DisplayMemberPath="Gestion" 
-                                  SelectedValuePath="codGestion" Width="180" Height="30"/>
-                    </StackPanel>
-
-                    <Button x:Name="btnBuscar" Content="🔍 Buscar" Width="100" Height="32"
-                            Click="btnBuscar_Click" Style="{StaticResource SearchButton}"/>
+                <!-- Título -->
+                <StackPanel Grid.Column="1" 
+                          Orientation="Horizontal" 
+                          VerticalAlignment="Center" 
+                          Margin="20,0">
+                    <TextBlock Text="📚" 
+                             FontSize="24" 
+                             VerticalAlignment="Center" 
+                             Margin="0,0,10,0"/>
+                    <TextBlock Text="Sistema de Gestión de Estudiantes" 
+                             FontSize="20" 
+                             FontWeight="SemiBold" 
+                             Foreground="#2C3E50" 
+                             VerticalAlignment="Center"/>
                 </StackPanel>
-            </Border>
+            </Grid>
+        </Border>
 
-            <!-- Fila 2: Información del estudiante -->
-            <Border Grid.Row="2" Grid.ColumnSpan="2" Background="#E8F5E8" 
-                    BorderBrush="#C3E6C3" BorderThickness="1" CornerRadius="5" 
-                    Padding="15,10" Margin="0,0,0,15" MinHeight="40">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="👤 Estudiante: " FontWeight="Bold" 
-                               Foreground="#2E7D32" VerticalAlignment="Center"/>
-                    <TextBlock x:Name="lblNombre" FontWeight="Bold" FontSize="14"
-                               Foreground="#1B5E20" VerticalAlignment="Center"/>
-                </StackPanel>
-            </Border>
+        <!-- Contenido principal -->
+        <Grid Grid.Row="1">
+            <!-- Overlay para cerrar menú -->
+            <Border x:Name="Overlay" 
+                    Background="Black" 
+                    Opacity="0" 
+                    Visibility="Collapsed"
+                    MouseLeftButtonDown="Overlay_Click"/>
 
-            <!-- Fila 3: Contenido principal con listas -->
-            <GroupBox Grid.Row="3" Grid.Column="0" Header="📚 Materias Inscritas" 
-                      Margin="0,0,10,20" MinHeight="300">
-                <ListBox x:Name="lstMateriasInscritas" DisplayMemberPath="Materia" 
-                         SelectedValuePath="codEd"/>
-            </GroupBox>
+            <!-- Contenido principal -->
+            <ContentControl x:Name="Contenido" 
+                          Background="#F8F9FA"
+                          Margin="0"/>
 
-            <GroupBox Grid.Row="3" Grid.Column="1" Header="📋 Materias Disponibles" 
-                      Margin="10,0,0,20" MinHeight="300">
-                <DataGrid x:Name="dgvMateriasOfertadas" AutoGenerateColumns="False" 
-                          SelectionMode="Single">
-                    <DataGrid.Columns>
-                        <DataGridTemplateColumn Header="Seleccionar" Width="80">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <CheckBox x:Name="chkSeleccionar" 
-                                              IsChecked="{Binding Seleccionar, Mode=TwoWay}"
-                                              HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
+            <!-- Menú lateral -->
+            <Border x:Name="SideMenu" 
+                    Width="250" 
+                    HorizontalAlignment="Left" 
+                    Background="#2C3E50"
+                    Visibility="Collapsed"
+                    RenderTransformOrigin="0,0">
+                <Border.Effect>
+                    <DropShadowEffect Color="Black" 
+                                    Direction="0" 
+                                    ShadowDepth="5" 
+                                    BlurRadius="20" 
+                                    Opacity="0.3"/>
+                </Border.Effect>
+                <Border.RenderTransform>
+                    <TranslateTransform X="-250"/>
+                </Border.RenderTransform>
 
-                        <DataGridTextColumn Header="Materia" Binding="{Binding Materia}" 
-                                            Width="*" IsReadOnly="True">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Padding" Value="8,5"/>
-                                    <Setter Property="VerticalAlignment" Value="Center"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                <StackPanel Margin="0,20">
+                    <!-- Header del menú -->
+                    <Border Background="#34495E" 
+                            Margin="10,0,10,20" 
+                            CornerRadius="8" 
+                            Padding="20,15">
+                        <StackPanel>
+                            <TextBlock Text="👨‍🎓" 
+                                     FontSize="24" 
+                                     HorizontalAlignment="Center" 
+                                     Margin="0,0,0,10"/>
+                            <TextBlock Text="Panel de Control" 
+                                     FontSize="16" 
+                                     FontWeight="SemiBold" 
+                                     Foreground="White" 
+                                     HorizontalAlignment="Center"/>
+                            <TextBlock Text="Gestión Académica" 
+                                     FontSize="12" 
+                                     Foreground="#BDC3C7" 
+                                     HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
 
-                        <DataGridTextColumn Header="Grupo" Binding="{Binding Grupo}" 
-                                            Width="80" IsReadOnly="True">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Padding" Value="8,5"/>
-                                    <Setter Property="VerticalAlignment" Value="Center"/>
-                                    <Setter Property="HorizontalAlignment" Value="Center"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                    <!-- Elementos del menú -->
+                    <Button Content="Inscripción de Materias" 
+                            Tag="📝" 
+                            Style="{StaticResource MenuItemStyle}"
+                            Click="BtnInscripcion_Click"
+                            Margin="10,5"/>
 
-                        <DataGridTextColumn Header="Docente" Binding="{Binding Docente}" 
-                                            Width="150" IsReadOnly="True">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Padding" Value="8,5"/>
-                                    <Setter Property="VerticalAlignment" Value="Center"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
-            </GroupBox>
+                    <Button Content="Reporte de Materias" 
+                            Tag="📊" 
+                            Style="{StaticResource MenuItemStyle}"
+                            Click="BtnReporteMaterias_Click"
+                            Margin="10,5"/>
 
-            <!-- Fila 4: Botones de acción -->
-            <Border Grid.Row="4" Grid.ColumnSpan="2" Background="#F8F9FA" 
-                    BorderBrush="#DEE2E6" BorderThickness="1" CornerRadius="5" 
-                    Padding="20,15">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <Button x:Name="btnInscribir" Content="✅ Inscribir" Width="100" 
-                            Click="btnInscribir_Click" Style="{StaticResource ModernButton}"/>
+                    <Button Content="Reporte de Asistencia" 
+                            Tag="📅" 
+                            Style="{StaticResource MenuItemStyle}"
+                            Click="BtnReporteAsistencia_Click"
+                            Margin="10,5"/>
 
-                    <Button x:Name="btnEliminar" Content="🗑️ Eliminar" Width="100" 
-                            Click="btnEliminar_Click" Style="{StaticResource DeleteButton}"/>
+                    <Button Content="Notas del Estudiante" 
+                            Tag="🎯" 
+                            Style="{StaticResource MenuItemStyle}"
+                            Click="BtnReporteNotasEstudiante_Click"
+                            Margin="10,5"/>
 
-                    <Button x:Name="btnModificar" Content="✏️ Modificar" Width="100" 
-                            Click="btnModificar_Click" Style="{StaticResource ModernButton}"/>
+                    <!-- Separador -->
+                    <Separator Background="#34495E" 
+                             Margin="20,20" 
+                             Height="1"/>
 
-                    <Button x:Name="btnNuevo" Content="🆕 Nuevo" Width="100" 
-                             Style="{StaticResource ModernButton}"/>
-                    <Button x:Name="btnReport" Content="🆕 Nuevo" Width="100" 
-                    Style="{StaticResource ModernButton}" Click="btnReport_Click"/>
-                    <Button x:Name="btnAsistencia" Content="🆕 Nuevo" Width="100" 
-                    Style="{StaticResource ModernButton}" Click="btnAsistencia_Click"/>
-                    <Button x:Name="btnnota" Content="🆕 Nuevo" Width="100" 
-                    Style="{StaticResource ModernButton}" Click="btnnota_Click"/>
+                    <!-- Información adicional -->
+                    <Border Background="#1ABC9C" 
+                            Margin="10,10" 
+                            CornerRadius="6" 
+                            Padding="15,10">
+                        <StackPanel>
+                            <TextBlock Text="✨ Tip del día" 
+                                     FontSize="12" 
+                                     FontWeight="Bold" 
+                                     Foreground="White"/>
+                            <TextBlock Text="Usa Ctrl+M para abrir/cerrar el menú rápidamente" 
+                                     FontSize="11" 
+                                     Foreground="White" 
+                                     TextWrapping="Wrap" 
+                                     Margin="0,5,0,0"/>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
             </Border>
         </Grid>
-    </Border>
+    </Grid>
 </Window>

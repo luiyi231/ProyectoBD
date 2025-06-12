@@ -1,14 +1,12 @@
-﻿<Window x:Class="Capa_Presentacion.ReporteNotasEstudiante"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Capa_Presentacion"
-        xmlns:sys="clr-namespace:System;assembly=mscorlib"
-        mc:Ignorable="d"
-        Title="Reporte de Notas por Estudiante" Height="700" Width="1000">
-
-    <Window.Resources>
+﻿<UserControl x:Class="ProyectoBD.ReporteNotasEstudiante"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:ProyectoBD"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
         <!-- Estilos para botones -->
         <Style TargetType="Button" x:Key="ModernButton">
             <Setter Property="Background" Value="#4A90E2"/>
@@ -22,9 +20,9 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}"
-                                CornerRadius="5"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                BorderBrush="{TemplateBinding BorderBrush}">
+                            CornerRadius="5"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            BorderBrush="{TemplateBinding BorderBrush}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -100,10 +98,10 @@
             <Setter Property="Padding" Value="8,5"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
         </Style>
-    </Window.Resources>
+    </UserControl.Resources>
 
     <Border Background="White" CornerRadius="8" Margin="15" 
-            BorderBrush="#DDDDDD" BorderThickness="1">
+        BorderBrush="#DDDDDD" BorderThickness="1">
         <Grid Margin="20">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -117,14 +115,14 @@
             <!-- Encabezado principal -->
             <Border Grid.Row="0" Background="#4A90E2" CornerRadius="5" Padding="15,10" Margin="0,0,0,20">
                 <TextBlock Text="📊 Reporte de Notas por Estudiante" 
-                           Foreground="White" FontSize="18" FontWeight="Bold" 
-                           HorizontalAlignment="Center"/>
+                       Foreground="White" FontSize="18" FontWeight="Bold" 
+                       HorizontalAlignment="Center"/>
             </Border>
 
             <!-- Filtros de búsqueda -->
             <Border Grid.Row="1" Background="#F8F9FA" 
-                    BorderBrush="#DEE2E6" BorderThickness="1" CornerRadius="5" 
-                    Padding="20" Margin="0,0,0,15">
+                BorderBrush="#DEE2E6" BorderThickness="1" CornerRadius="5" 
+                Padding="20" Margin="0,0,0,15">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -139,44 +137,44 @@
                     <!-- Primera fila de filtros -->
                     <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,15,15">
                         <TextBlock Text="Número de Registro (RU):" FontWeight="SemiBold" 
-                                   Foreground="#495057" Margin="0,0,0,5"/>
+                               Foreground="#495057" Margin="0,0,0,5"/>
                         <TextBox x:Name="txtRU" MaxLength="20" 
-                                 TextChanged="txtRU_TextChanged"/>
+                             TextChanged="txtRU_TextChanged"/>
                     </StackPanel>
 
                     <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,15,15">
                         <TextBlock Text="Gestión:" FontWeight="SemiBold" 
-                                   Foreground="#495057" Margin="0,0,0,5"/>
+                               Foreground="#495057" Margin="0,0,0,5"/>
                         <ComboBox x:Name="cbGestion" DisplayMemberPath="Gestion" 
-                                  SelectedValuePath="codGestion"/>
+                              SelectedValuePath="codGestion"/>
                     </StackPanel>
 
                     <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,15" VerticalAlignment="Bottom">
                         <Button x:Name="btnBuscar" Content="🔍 Buscar" 
-                                Width="100" Height="35" Click="btnBuscar_Click"
-                                Style="{StaticResource SearchButton}"/>
+                            Width="100" Height="35" Click="btnBuscar_Click"
+                            Style="{StaticResource SearchButton}"/>
                     </StackPanel>
 
                     <!-- Segunda fila - Botones -->
                     <StackPanel Grid.Row="1" Grid.ColumnSpan="3" 
-                                Orientation="Horizontal" HorizontalAlignment="Center">
+                            Orientation="Horizontal" HorizontalAlignment="Center">
                         <Button x:Name="btnGenerar" Content="📋 Generar Reporte" 
-                                Width="150" Height="35" Click="btnGenerar_Click"
-                                Style="{StaticResource ReportButton}" IsEnabled="False"/>
+                            Width="150" Height="35" Click="btnGenerar_Click"
+                            Style="{StaticResource ReportButton}" IsEnabled="False"/>
                         <Button x:Name="btnImprimir" Content="🖨️ Imprimir" 
-                                Width="120" Height="35" Click="btnImprimir_Click"
-                                Style="{StaticResource PrintButton}" IsEnabled="False"/>
+                            Width="120" Height="35" Click="btnImprimir_Click"
+                            Style="{StaticResource PrintButton}" IsEnabled="False"/>
                         <Button x:Name="btnLimpiar" Content="🧹 Limpiar" 
-                                Width="100" Height="35" Click="btnLimpiar_Click"
-                                Style="{StaticResource ModernButton}"/>
+                            Width="100" Height="35" Click="btnLimpiar_Click"
+                            Style="{StaticResource ModernButton}"/>
                     </StackPanel>
                 </Grid>
             </Border>
 
             <!-- Información del estudiante -->
             <Border Grid.Row="2" Background="#E3F2FD" 
-                    BorderBrush="#BBDEFB" BorderThickness="1" CornerRadius="5" 
-                    Padding="20" Margin="0,0,0,15" MinHeight="120">
+                BorderBrush="#BBDEFB" BorderThickness="1" CornerRadius="5" 
+                Padding="20" Margin="0,0,0,15" MinHeight="120">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -189,49 +187,49 @@
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Grid.Row="0" Grid.ColumnSpan="3" Text="📝 Información del Estudiante" 
-                               FontWeight="Bold" FontSize="14" Foreground="#1565C0" 
-                               Margin="0,0,0,10"/>
+                           FontWeight="Bold" FontSize="14" Foreground="#1565C0" 
+                           Margin="0,0,0,10"/>
 
                     <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,15,0">
                         <TextBlock Text="Nombre Completo:" FontWeight="SemiBold" 
-                                   Foreground="#424242" Margin="0,0,0,5"/>
+                               Foreground="#424242" Margin="0,0,0,5"/>
                         <TextBox x:Name="txtNombreCompleto" IsReadOnly="True" 
-                                 Background="#F5F5F5"/>
+                             Background="#F5F5F5"/>
                     </StackPanel>
 
                     <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,15,0">
                         <TextBlock Text="Cédula de Identidad:" FontWeight="SemiBold" 
-                                   Foreground="#424242" Margin="0,0,0,5"/>
+                               Foreground="#424242" Margin="0,0,0,5"/>
                         <TextBox x:Name="txtCI" IsReadOnly="True" 
-                                 Background="#F5F5F5"/>
+                             Background="#F5F5F5"/>
                     </StackPanel>
 
                     <StackPanel Grid.Row="1" Grid.Column="2">
                         <TextBlock Text="Carrera:" FontWeight="SemiBold" 
-                                   Foreground="#424242" Margin="0,0,0,5"/>
+                               Foreground="#424242" Margin="0,0,0,5"/>
                         <TextBox x:Name="txtCarrera" IsReadOnly="True" 
-                                 Background="#F5F5F5"/>
+                             Background="#F5F5F5"/>
                     </StackPanel>
                 </Grid>
             </Border>
 
             <!-- Información del reporte -->
             <Border Grid.Row="3" Background="#E8F5E8" 
-                    BorderBrush="#C3E6C3" BorderThickness="1" CornerRadius="5" 
-                    Padding="15,10" Margin="0,0,0,15" MinHeight="60">
+                BorderBrush="#C3E6C3" BorderThickness="1" CornerRadius="5" 
+                Padding="15,10" Margin="0,0,0,15" MinHeight="60">
                 <StackPanel>
                     <TextBlock x:Name="lblInfoReporte" FontWeight="Bold" 
-                               Foreground="#2E7D32" VerticalAlignment="Center"
-                               Text="Ingrese el RU del estudiante y seleccione la gestión"/>
+                           Foreground="#2E7D32" VerticalAlignment="Center"
+                           Text="Ingrese el RU del estudiante y seleccione la gestión"/>
                     <TextBlock x:Name="lblEstadisticas" FontWeight="SemiBold" 
-                               Foreground="#1B5E20" VerticalAlignment="Center"
-                               Margin="0,5,0,0"/>
+                           Foreground="#1B5E20" VerticalAlignment="Center"
+                           Margin="0,5,0,0"/>
                 </StackPanel>
             </Border>
 
             <!-- DataGrid con el reporte de notas -->
             <Border Grid.Row="4" BorderBrush="#DDDDDD" BorderThickness="1" 
-                    CornerRadius="5" Background="White" Margin="0,0,0,15">
+                CornerRadius="5" Background="White" Margin="0,0,0,15">
                 <DataGrid x:Name="dgReporte" Margin="5">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Materia" Binding="{Binding NombreMateria}" Width="250" MinWidth="200"/>
@@ -308,17 +306,17 @@
 
             <!-- Pie de página -->
             <Border Grid.Row="5" Background="#F8F9FA" 
-                    BorderBrush="#DEE2E6" BorderThickness="1" CornerRadius="5" 
-                    Padding="15,10">
+                BorderBrush="#DEE2E6" BorderThickness="1" CornerRadius="5" 
+                Padding="15,10">
                 <Grid>
                     <TextBlock Text="💡 Tip: Las notas en rojo indican materias reprobadas ( 51 puntos)" 
-                               Foreground="#6C757D" FontStyle="Italic"
-                               HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                           Foreground="#6C757D" FontStyle="Italic"
+                           HorizontalAlignment="Left" VerticalAlignment="Center"/>
                     <TextBlock x:Name="lblFechaReporte" 
-                               Foreground="#6C757D" FontSize="10"
-                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                           Foreground="#6C757D" FontSize="10"
+                           HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 </Grid>
             </Border>
         </Grid>
     </Border>
-</Window>
+</UserControl>

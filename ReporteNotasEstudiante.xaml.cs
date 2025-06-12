@@ -1,21 +1,32 @@
-﻿using System;
+﻿using Capa_Negocios;
+using System;
+using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Media;
-using Capa_Negocios;
+using System.Windows.Media.Imaging;
+using System.Windows.Media.TextFormatting;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
 
-namespace Capa_Presentacion
+namespace ProyectoBD
 {
-    public partial class ReporteNotasEstudiante : Window
+    /// <summary>
+    /// Lógica de interacción para ReporteNotasEstudiante1.xaml
+    /// </summary>
+    public partial class ReporteNotasEstudiante : UserControl
     {
         private ReporteNotasEstudianteNegocio objReporteNegocio;
         private int idEstudianteActual = 0;
 
-        public ReporteNotasEstudiante()
+        public ReporteNotasEstudiante ()
         {
             InitializeComponent();
             objReporteNegocio = new ReporteNotasEstudianteNegocio();
