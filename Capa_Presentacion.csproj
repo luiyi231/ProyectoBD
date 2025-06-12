@@ -55,6 +55,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ReporteAsistencia.xaml.cs">
+      <DependentUpon>ReporteAsistencia.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ReporteMaterias.xaml.cs">
       <DependentUpon>ReporteMaterias.xaml</DependentUpon>
     </Compile>
@@ -70,6 +73,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="ReporteAsistencia.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="ReporteMaterias.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

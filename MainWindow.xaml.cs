@@ -320,5 +320,11 @@ namespace Capa_Presentacion
             ReporteMaterias ventanaReporte = new ReporteMaterias();
             ventanaReporte.Show();
         }
+
+        private void btnAsistencia_Click(object sender, RoutedEventArgs e)
+        {
+            ReporteAsistencia ventanaAsistencia = new ReporteAsistencia();
+            ventanaAsistencia.Show();
+        }
     }
 }

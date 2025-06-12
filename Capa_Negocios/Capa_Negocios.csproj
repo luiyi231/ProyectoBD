@@ -45,6 +45,7 @@
     <Compile Include="Gestion.cs" />
     <Compile Include="Inscripcion.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReporteAsistenciaNegocio.cs" />
     <Compile Include="ReporteMaterias.cs" />
   </ItemGroup>
   <ItemGroup>
