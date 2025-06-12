@@ -55,12 +55,22 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Inscripcion.xaml.cs">
+      <DependentUpon>Inscripcion.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ReporteAsistencia.xaml.cs">
       <DependentUpon>ReporteAsistencia.xaml</DependentUpon>
     </Compile>
     <Compile Include="ReporteMaterias.xaml.cs">
       <DependentUpon>ReporteMaterias.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ReporteNotasEstudiante.xaml.cs">
+      <DependentUpon>ReporteNotasEstudiante.xaml</DependentUpon>
+    </Compile>
+    <Page Include="Inscripcion.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -78,6 +88,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ReporteMaterias.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ReporteNotasEstudiante.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -237,6 +237,8 @@
                     Style="{StaticResource ModernButton}" Click="btnReport_Click"/>
                     <Button x:Name="btnAsistencia" Content="🆕 Nuevo" Width="100" 
                     Style="{StaticResource ModernButton}" Click="btnAsistencia_Click"/>
+                    <Button x:Name="btnnota" Content="🆕 Nuevo" Width="100" 
+                    Style="{StaticResource ModernButton}" Click="btnnota_Click"/>
                 </StackPanel>
             </Border>
         </Grid>

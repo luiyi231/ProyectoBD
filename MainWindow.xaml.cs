@@ -326,5 +326,11 @@ namespace Capa_Presentacion
             ReporteAsistencia ventanaAsistencia = new ReporteAsistencia();
             ventanaAsistencia.Show();
         }
+
+        private void btnnota_Click(object sender, RoutedEventArgs e)
+        {
+            ReporteNotasEstudiante ventanaNotasEstudiante = new ReporteNotasEstudiante();
+            ventanaNotasEstudiante.Show();
+        }
     }
 }
