@@ -4,8 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:ProyectoBD"
-             xmlns:sys="clr-namespace:System;assembly=mscorlib"
-
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
@@ -85,6 +83,16 @@
             <Setter Property="Padding" Value="8,5"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
         </Style>
+
+        <!-- Estilo para filas del DataGrid -->
+        <Style TargetType="DataGridRow">
+            <Setter Property="Height" Value="30"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#E3F2FD"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
 
     <Border Background="White" CornerRadius="8" Margin="15" 
@@ -100,9 +108,14 @@
 
             <!-- Encabezado principal -->
             <Border Grid.Row="0" Background="#4A90E2" CornerRadius="5" Padding="15,10" Margin="0,0,0,20">
-                <TextBlock Text="📊 Reporte de Asistencias por Materia" 
-                       Foreground="White" FontSize="18" FontWeight="Bold" 
-                       HorizontalAlignment="Center"/>
+                <StackPanel>
+                    <TextBlock Text="📊 Reporte de Asistencia" 
+                           Foreground="White" FontSize="18" FontWeight="Bold" 
+                           HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="lblFechaReporte" 
+                           Foreground="#B3D9FF" FontSize="12"
+                           HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                </StackPanel>
             </Border>
 
             <!-- Filtros -->
@@ -113,8 +126,10 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
@@ -133,20 +148,27 @@
                         <TextBlock Text="Materia:" FontWeight="SemiBold" 
                                Foreground="#495057" Margin="0,0,0,5"/>
                         <ComboBox x:Name="cbMateria" DisplayMemberPath="NombreMateria" 
-                              SelectedValuePath="ID_Materia" Height="32"/>
+                              SelectedValuePath="ID_Materia" Height="32"
+                              SelectionChanged="cbMateria_SelectionChanged"/>
                     </StackPanel>
 
-                    <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,15">
+                    <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,15,15">
                         <TextBlock Text="Gestión:" FontWeight="SemiBold" 
                                Foreground="#495057" Margin="0,0,0,5"/>
-                        <ComboBox x:Name="cbGestion" DisplayMemberPath="Gestion" 
-                              SelectedValuePath="codGestion" Height="32"/>
+                        <ComboBox x:Name="cbGestion" Height="32"
+                              SelectionChanged="cbGestion_SelectionChanged"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="0" Grid.Column="3" Margin="0,0,0,15">
+                        <TextBlock Text="Fecha:" FontWeight="SemiBold" 
+                               Foreground="#495057" Margin="0,0,0,5"/>
+                        <ComboBox x:Name="cbFecha" Height="32"/>
                     </StackPanel>
 
                     <!-- Segunda fila - Botones -->
-                    <StackPanel Grid.Row="1" Grid.ColumnSpan="3" 
+                    <StackPanel Grid.Row="1" Grid.ColumnSpan="4" 
                             Orientation="Horizontal" HorizontalAlignment="Center">
-                        <Button x:Name="btnGenerar" Content="📋 Generar Reporte" 
+                        <Button x:Name="btnGenerar" Content="📊 Generar Reporte" 
                             Width="150" Height="35" Click="btnGenerar_Click"
                             Style="{StaticResource ReportButton}"/>
                         <Button x:Name="btnImprimir" Content="🖨️ Imprimir" 
@@ -162,75 +184,95 @@
             <!-- Información del reporte -->
             <Border Grid.Row="2" Background="#E8F5E8" 
                 BorderBrush="#C3E6C3" BorderThickness="1" CornerRadius="5" 
-                Padding="15,10" Margin="0,0,0,15" MinHeight="60">
+                Padding="15,10" Margin="0,0,0,15" MinHeight="40">
                 <StackPanel>
                     <TextBlock x:Name="lblInfoReporte" FontWeight="Bold" 
                            Foreground="#2E7D32" VerticalAlignment="Center"
-                           Text="Seleccione carrera, materia y gestión para generar el reporte"/>
-                    <TextBlock x:Name="lblTotalEstudiantes" FontWeight="SemiBold" 
-                           Foreground="#1B5E20" VerticalAlignment="Center"
-                           Margin="0,5,0,0"/>
-                    <TextBlock x:Name="lblPromedioAsistencia" FontWeight="SemiBold" 
-                           Foreground="#1B5E20" VerticalAlignment="Center"
-                           Margin="0,2,0,0"/>
+                           Text="Seleccione los filtros y genere el reporte"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                        <TextBlock x:Name="lblTotalEstudiantes" FontWeight="SemiBold" 
+                               Foreground="#1B5E20" VerticalAlignment="Center"
+                               Margin="0,0,20,0"/>
+                        <TextBlock x:Name="lblEstadisticasAsistencia" FontWeight="SemiBold" 
+                               Foreground="#1B5E20" VerticalAlignment="Center"/>
+                    </StackPanel>
                 </StackPanel>
             </Border>
 
-            <!-- DataGrid con el reporte de asistencias -->
+            <!-- DataGrid con el reporte -->
             <Border Grid.Row="3" BorderBrush="#DDDDDD" BorderThickness="1" 
                 CornerRadius="5" Background="White" Margin="0,0,0,15">
                 <DataGrid x:Name="dgReporte" Margin="5">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Estudiante" Binding="{Binding Estudiante}" Width="200" MinWidth="150"/>
-                        <DataGridTextColumn Header="CI" Binding="{Binding CI}" Width="100" MinWidth="80"/>
-                        <DataGridTextColumn Header="RU" Binding="{Binding RU}" Width="80" MinWidth="60"/>
-                        <DataGridTextColumn Header="Grupo" Binding="{Binding Grupo}" Width="70" MinWidth="50"/>
-                        <DataGridTextColumn Header="Docente" Binding="{Binding Docente}" Width="180" MinWidth="120"/>
-                        <DataGridTextColumn Header="Total Clases" Binding="{Binding TotalClases}" Width="90" MinWidth="70"/>
-                        <DataGridTextColumn Header="Asistidas" Binding="{Binding ClasesAsistidas}" Width="80" MinWidth="60"/>
-                        <DataGridTextColumn Header="Faltadas" Binding="{Binding ClasesFaltadas}" Width="80" MinWidth="60"/>
-
-                        <!-- Porcentaje con colores según valor (sin converter) -->
-                        <DataGridTemplateColumn Header="% Asistencia" Width="100" MinWidth="80">
+                        <DataGridTextColumn Header="Nombre Completo" 
+                                           Binding="{Binding NombreCompleto}" 
+                                           Width="2*" MinWidth="200"/>
+                        <DataGridTextColumn Header="CI" 
+                                           Binding="{Binding CI}" 
+                                           Width="120" MinWidth="100">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="RU" 
+                                           Binding="{Binding RU}" 
+                                           Width="100" MinWidth="80">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTemplateColumn Header="Asistencia" Width="100" MinWidth="80">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding PorcentajeAsistencia, StringFormat={}{0:F2}%}" Padding="4" TextAlignment="Center">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
+                                    <Border CornerRadius="3" Padding="5,2" HorizontalAlignment="Center">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding PorcentajeAsistencia}" Value="0">
-                                                        <Setter Property="Background" Value="#FFEBEE"/>
-                                                        <Setter Property="Foreground" Value="#C62828"/>
+                                                    <DataTrigger Binding="{Binding Asistencia}" Value="P">
+                                                        <Setter Property="Background" Value="#D4EDDA"/>
+                                                        <Setter Property="BorderBrush" Value="#C3E6CB"/>
+                                                        <Setter Property="BorderThickness" Value="1"/>
                                                     </DataTrigger>
-                                                    <DataTrigger Binding="{Binding PorcentajeAsistencia}">
-                                                        <DataTrigger.Value>
-                                                            <sys:Double>70</sys:Double>
-                                                        </DataTrigger.Value>
-                                                        <Setter Property="Background" Value="#FFEBEE"/>
-                                                        <Setter Property="Foreground" Value="#C62828"/>
+                                                    <DataTrigger Binding="{Binding Asistencia}" Value="F">
+                                                        <Setter Property="Background" Value="#F8D7DA"/>
+                                                        <Setter Property="BorderBrush" Value="#F5C6CB"/>
+                                                        <Setter Property="BorderThickness" Value="1"/>
                                                     </DataTrigger>
-                                                    <DataTrigger Binding="{Binding PorcentajeAsistencia}">
-                                                        <DataTrigger.Value>
-                                                            <sys:Double>85</sys:Double>
-                                                        </DataTrigger.Value>
-                                                        <Setter Property="Background" Value="#FFF8E1"/>
-                                                        <Setter Property="Foreground" Value="#F57F17"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding PorcentajeAsistencia}">
-                                                        <DataTrigger.Value>
-                                                            <sys:Double>100</sys:Double>
-                                                        </DataTrigger.Value>
-                                                        <Setter Property="Background" Value="#E8F5E8"/>
-                                                        <Setter Property="Foreground" Value="#2E7D32"/>
+                                                    <DataTrigger Binding="{Binding Asistencia}" Value="N/R">
+                                                        <Setter Property="Background" Value="#FFF3CD"/>
+                                                        <Setter Property="BorderBrush" Value="#FFEAA7"/>
+                                                        <Setter Property="BorderThickness" Value="1"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding Asistencia}" 
+                                                  FontWeight="Bold" 
+                                                  TextAlignment="Center">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Asistencia}" Value="P">
+                                                            <Setter Property="Foreground" Value="#155724"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Asistencia}" Value="F">
+                                                            <Setter Property="Foreground" Value="#721C24"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Asistencia}" Value="N/R">
+                                                            <Setter Property="Foreground" Value="#856404"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Border>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-
                     </DataGrid.Columns>
                 </DataGrid>
             </Border>
@@ -240,10 +282,10 @@
                 BorderBrush="#DEE2E6" BorderThickness="1" CornerRadius="5" 
                 Padding="15,10">
                 <Grid>
-                    <TextBlock Text="💡 Tip: El % de asistencia se calcula en base a las clases registradas en el sistema" 
+                    <TextBlock Text="💡 Tip: Seleccione carrera, materia, gestión y fecha para generar el reporte de asistencia" 
                            Foreground="#6C757D" FontStyle="Italic"
                            HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                    <TextBlock x:Name="lblFechaReporte" 
+                    <TextBlock Text="Sistema de Gestión Académica - Reportes de Asistencia"
                            Foreground="#6C757D" FontSize="10"
                            HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 </Grid>

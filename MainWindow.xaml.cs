@@ -85,6 +85,7 @@ namespace Capa_Presentacion
                 ToggleMenu();
             }
             // Escape para cerrar menú
+         
             else if (e.Key == Key.Escape && isMenuOpen)
             {
                 CloseMenu();

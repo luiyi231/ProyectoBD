@@ -4,11 +4,11 @@ using System.Data.SqlClient;
 
 namespace Capa_Negocios
 {
-    public class ReporteAsistenciasNegocio
+    public class ReporteAsistenciaNegocio
     {
         private string connectionString;
 
-        public ReporteAsistenciasNegocio()
+        public ReporteAsistenciaNegocio()
         {
             connectionString = new Capa_Datos.gDatos().ObtenerCadenaConexion();
         }
@@ -48,16 +48,18 @@ namespace Capa_Negocios
             return tabla;
         }
 
-        // Obtener gestiones
-        public DataTable ObtenerGestiones()
+        // Obtener fechas de asistencia por materia y gestión
+        public DataTable ObtenerFechasAsistencia(int idMateria, int idGestion)
         {
             DataTable tabla = new DataTable();
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_ObtenerGestiones", conn))
+                using (SqlCommand cmd = new SqlCommand("sp_ObtenerFechasAsistencia", conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@id_materia", idMateria);
+                    cmd.Parameters.AddWithValue("@id_gestion", idGestion);
                     SqlDataAdapter adapter = new SqlDataAdapter(cmd);
                     adapter.Fill(tabla);
                 }
@@ -65,38 +67,20 @@ namespace Capa_Negocios
             return tabla;
         }
 
-        // Generar reporte de asistencias por materia
-        public DataTable GenerarReporteAsistencias(int idMateria, int idGestion)
+        // Generar reporte de asistencia
+        public DataTable GenerarReporteAsistencia(int idCarrera, int idMateria, int idGestion, DateTime fecha)
         {
             DataTable tabla = new DataTable();
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_ReporteAsistenciasPorMateria", conn))
+                using (SqlCommand cmd = new SqlCommand("sp_ReporteAsistencia", conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@id_carrera", idCarrera);
                     cmd.Parameters.AddWithValue("@id_materia", idMateria);
                     cmd.Parameters.AddWithValue("@id_gestion", idGestion);
-                    cmd.CommandTimeout = 30; // 30 segundos de timeout
-                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-                    adapter.Fill(tabla);
-                }
-            }
-            return tabla;
-        }
-
-        // Obtener información de la materia seleccionada
-        public DataTable ObtenerInfoMateria(int idMateria, int idGestion)
-        {
-            DataTable tabla = new DataTable();
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_ObtenerInfoMateria", conn))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@id_materia", idMateria);
-                    cmd.Parameters.AddWithValue("@id_gestion", idGestion);
+                    cmd.Parameters.AddWithValue("@fecha", fecha);
                     SqlDataAdapter adapter = new SqlDataAdapter(cmd);
                     adapter.Fill(tabla);
                 }

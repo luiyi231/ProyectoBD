@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,20 +18,24 @@ using System.Windows.Shapes;
 namespace ProyectoBD
 {
     /// <summary>
-    /// Lógica de interacción para ReporteAsistencia1.xaml
+    /// Lógica de interacción para ReporteAsistencia.xaml
     /// </summary>
     public partial class ReporteAsistencia1 : UserControl
     {
-        private ReporteAsistenciasNegocio objReporteNegocio;
+        private Capa_Negocios.ReporteAsistenciaNegocio objReporteNegocio;
+        private Gestion objGestion;
 
         public ReporteAsistencia1()
         {
             InitializeComponent();
-            objReporteNegocio = new ReporteAsistenciasNegocio();
-            Loaded += ReporteAsistencias_Loaded;
+
+            objReporteNegocio = new Capa_Negocios.ReporteAsistenciaNegocio();
+            objGestion = new Gestion();
+
+            Loaded += ReporteAsistencia_Loaded;
         }
 
-        private void ReporteAsistencias_Loaded(object sender, RoutedEventArgs e)
+        private void ReporteAsistencia_Loaded(object sender, RoutedEventArgs e)
         {
             CargarDatosIniciales();
             lblFechaReporte.Text = $"Generado: {DateTime.Now:dd/MM/yyyy HH:mm}";
@@ -47,11 +50,13 @@ namespace ProyectoBD
                 cbCarrera.ItemsSource = carreras.DefaultView;
 
                 // Cargar gestiones
-                DataTable gestiones = objReporteNegocio.ObtenerGestiones();
+                DataTable gestiones = objGestion.ObtenerTodas();
                 cbGestion.ItemsSource = gestiones.DefaultView;
+                cbGestion.DisplayMemberPath = "Gestion";
+                cbGestion.SelectedValuePath = "codGestion";
 
-                // Limpiar otros controles
                 cbMateria.ItemsSource = null;
+                cbFecha.ItemsSource = null;
                 dgReporte.ItemsSource = null;
             }
             catch (Exception ex)
@@ -71,11 +76,11 @@ namespace ProyectoBD
                     DataTable materias = objReporteNegocio.ObtenerMateriasPorCarrera(idCarrera);
                     cbMateria.ItemsSource = materias.DefaultView;
 
-                    // Limpiar reporte anterior
+                    cbFecha.ItemsSource = null;
                     dgReporte.ItemsSource = null;
                     lblTotalEstudiantes.Text = "";
-                    lblPromedioAsistencia.Text = "";
-                    lblInfoReporte.Text = "Seleccione la materia y gestión, luego genere el reporte";
+                    lblEstadisticasAsistencia.Text = "";
+                    lblInfoReporte.Text = "Seleccione la materia, gestión y fecha, luego genere el reporte";
                 }
                 catch (Exception ex)
                 {
@@ -86,6 +91,58 @@ namespace ProyectoBD
             else
             {
                 cbMateria.ItemsSource = null;
+                cbFecha.ItemsSource = null;
+            }
+        }
+
+        private void cbMateria_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // Limpiar controles dependientes
+            cbFecha.ItemsSource = null;
+            dgReporte.ItemsSource = null;
+            lblTotalEstudiantes.Text = "";
+            lblEstadisticasAsistencia.Text = "";
+
+            if (cbMateria.SelectedValue != null)
+            {
+                lblInfoReporte.Text = "Seleccione la gestión y fecha, luego genere el reporte";
+                CargarFechas();
+            }
+        }
+
+        private void cbGestion_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // Limpiar reporte cuando cambie la gestión
+            cbFecha.ItemsSource = null;
+            dgReporte.ItemsSource = null;
+            lblTotalEstudiantes.Text = "";
+            lblEstadisticasAsistencia.Text = "";
+
+            if (cbGestion.SelectedValue != null)
+            {
+                CargarFechas();
+            }
+        }
+
+        private void CargarFechas()
+        {
+            if (cbMateria.SelectedValue != null && cbGestion.SelectedValue != null)
+            {
+                try
+                {
+                    int idMateria = Convert.ToInt32(cbMateria.SelectedValue);
+                    int idGestion = Convert.ToInt32(cbGestion.SelectedValue);
+
+                    DataTable fechas = objReporteNegocio.ObtenerFechasAsistencia(idMateria, idGestion);
+                    cbFecha.ItemsSource = fechas.DefaultView;
+                    cbFecha.DisplayMemberPath = "FechaFormateada";
+                    cbFecha.SelectedValuePath = "Fecha";
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error al cargar fechas: {ex.Message}",
+                        "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
 
@@ -96,43 +153,62 @@ namespace ProyectoBD
 
             try
             {
+                int idCarrera = Convert.ToInt32(cbCarrera.SelectedValue);
                 int idMateria = Convert.ToInt32(cbMateria.SelectedValue);
                 int idGestion = Convert.ToInt32(cbGestion.SelectedValue);
+                DateTime fecha = Convert.ToDateTime(cbFecha.SelectedValue);
 
-                // Generar reporte
-                DataTable reporte = objReporteNegocio.GenerarReporteAsistencias(idMateria, idGestion);
+                DataTable reporte = objReporteNegocio.GenerarReporteAsistencia(idCarrera, idMateria, idGestion, fecha);
 
                 if (reporte.Rows.Count > 0)
                 {
                     dgReporte.ItemsSource = reporte.DefaultView;
 
-                    // Calcular estadísticas
-                    int totalEstudiantes = reporte.Rows.Count;
-                    double promedioAsistencia = Convert.ToDouble(reporte.Compute("AVG(PorcentajeAsistencia)", ""));
-
-                    // Obtener información de la materia
-                    DataTable infoMateria = objReporteNegocio.ObtenerInfoMateria(idMateria, idGestion);
-                    string nombreMateria = infoMateria.Rows.Count > 0 ? infoMateria.Rows[0]["NombreMateria"].ToString() : cbMateria.Text;
-
-                    // Actualizar labels informativos
                     string carrera = cbCarrera.Text;
+                    string materia = cbMateria.Text;
                     string gestion = cbGestion.Text;
+                    string fechaStr = fecha.ToString("dd/MM/yyyy");
 
-                    lblInfoReporte.Text = $"📈 Reporte: {nombreMateria} - {carrera} - {gestion}";
-                    lblTotalEstudiantes.Text = $"Total de estudiantes: {totalEstudiantes}";
-                    lblPromedioAsistencia.Text = $"Promedio de asistencia: {promedioAsistencia:F2}%";
+                    lblInfoReporte.Text = $"📈 Reporte: {materia} - {carrera} - {gestion} - {fechaStr}";
+                    lblTotalEstudiantes.Text = $"Total de estudiantes: {reporte.Rows.Count}";
+
+                    // Calcular estadísticas de asistencia
+                    int presentes = 0;
+                    int ausentes = 0;
+                    int sinRegistro = 0;
+
+                    foreach (DataRow row in reporte.Rows)
+                    {
+                        string asistencia = row["Asistencia"].ToString();
+                        if (asistencia == "P")
+                            presentes++;
+                        else if (asistencia == "F")
+                            ausentes++;
+                        else if (asistencia == "N/R")
+                            sinRegistro++;
+                    }
+
+                    double porcentajeAsistencia = reporte.Rows.Count > 0 ?
+                        (double)presentes / reporte.Rows.Count * 100 : 0;
+
+                    string estadisticas = $"Presentes: {presentes} | Ausentes: {ausentes}";
+                    if (sinRegistro > 0)
+                        estadisticas += $" | Sin registro: {sinRegistro}";
+                    estadisticas += $" | % Asistencia: {porcentajeAsistencia:F1}%";
+
+                    lblEstadisticasAsistencia.Text = estadisticas;
 
                     btnImprimir.IsEnabled = true;
                 }
                 else
                 {
                     dgReporte.ItemsSource = null;
-                    lblInfoReporte.Text = "❌ No se encontraron registros de asistencia para los criterios seleccionados";
+                    lblInfoReporte.Text = "❌ No se encontraron estudiantes matriculados para los criterios seleccionados";
                     lblTotalEstudiantes.Text = "";
-                    lblPromedioAsistencia.Text = "";
+                    lblEstadisticasAsistencia.Text = "";
                     btnImprimir.IsEnabled = false;
 
-                    MessageBox.Show("No se encontraron registros de asistencia para los criterios seleccionados.",
+                    MessageBox.Show("No se encontraron estudiantes matriculados para los criterios seleccionados.",
                         "Sin resultados", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
@@ -169,6 +245,14 @@ namespace ProyectoBD
                 return false;
             }
 
+            if (cbFecha.SelectedIndex == -1)
+            {
+                MessageBox.Show("Debe seleccionar una fecha.", "Validación",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                cbFecha.Focus();
+                return false;
+            }
+
             return true;
         }
 
@@ -183,242 +267,150 @@ namespace ProyectoBD
 
             try
             {
-                // Crear documento para imprimir
-                FlowDocument flowDocument = CrearDocumentoParaImprimir();
-
-                // Configurar diálogo de impresión
                 PrintDialog printDialog = new PrintDialog();
-
                 if (printDialog.ShowDialog() == true)
                 {
-                    // Configurar el documento para la impresión
-                    flowDocument.PageHeight = printDialog.PrintableAreaHeight;
-                    flowDocument.PageWidth = printDialog.PrintableAreaWidth;
-                    flowDocument.PagePadding = new Thickness(50);
-                    flowDocument.ColumnGap = 0;
-                    flowDocument.ColumnWidth = printDialog.PrintableAreaWidth - 100;
+                    FlowDocument documento = CrearDocumentoImpresion();
+                    documento.PageHeight = printDialog.PrintableAreaHeight;
+                    documento.PageWidth = printDialog.PrintableAreaWidth;
+                    documento.PagePadding = new Thickness(50);
+                    documento.ColumnGap = 0;
+                    documento.ColumnWidth = printDialog.PrintableAreaWidth;
 
-                    // Crear un DocumentPaginator
-                    IDocumentPaginatorSource idpSource = flowDocument;
+                    IDocumentPaginatorSource idocument = documento as IDocumentPaginatorSource;
+                    printDialog.PrintDocument(idocument.DocumentPaginator, "Reporte de Asistencia");
 
-                    // Imprimir el documento
-                    printDialog.PrintDocument(idpSource.DocumentPaginator, "Reporte de Asistencias");
-
-                    MessageBox.Show("El reporte se ha enviado a la impresora correctamente.",
-                        "Impresión exitosa", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show("Documento enviado a la impresora correctamente.", "Impresión",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al imprimir el reporte: {ex.Message}",
-                    "Error de impresión", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error al imprimir: {ex.Message}", "Error de Impresión",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        private FlowDocument CrearDocumentoParaImprimir()
+        private FlowDocument CrearDocumentoImpresion()
         {
-            FlowDocument flowDocument = new FlowDocument();
+            FlowDocument documento = new FlowDocument();
 
-            // Título del documento
-            Paragraph titulo = new Paragraph(new Run("REPORTE DE ASISTENCIAS POR MATERIA"))
+            Paragraph titulo = new Paragraph(new Run("REPORTE DE ASISTENCIA DE ESTUDIANTES"))
             {
                 FontSize = 18,
                 FontWeight = FontWeights.Bold,
                 TextAlignment = TextAlignment.Center,
                 Margin = new Thickness(0, 0, 0, 20)
             };
-            flowDocument.Blocks.Add(titulo);
+            documento.Blocks.Add(titulo);
 
-            // Información del reporte
-            Paragraph info = new Paragraph()
-            {
-                Margin = new Thickness(0, 0, 0, 15)
-            };
+            Paragraph info = new Paragraph();
             info.Inlines.Add(new Run($"Carrera: {cbCarrera.Text}") { FontWeight = FontWeights.Bold });
             info.Inlines.Add(new LineBreak());
             info.Inlines.Add(new Run($"Materia: {cbMateria.Text}") { FontWeight = FontWeights.Bold });
             info.Inlines.Add(new LineBreak());
             info.Inlines.Add(new Run($"Gestión: {cbGestion.Text}") { FontWeight = FontWeights.Bold });
             info.Inlines.Add(new LineBreak());
+            info.Inlines.Add(new Run($"Fecha: {Convert.ToDateTime(cbFecha.SelectedValue):dd/MM/yyyy}") { FontWeight = FontWeights.Bold });
+            info.Inlines.Add(new LineBreak());
             info.Inlines.Add(new Run($"Fecha de generación: {DateTime.Now:dd/MM/yyyy HH:mm}"));
-            flowDocument.Blocks.Add(info);
+            info.Margin = new Thickness(0, 0, 0, 20);
+            documento.Blocks.Add(info);
 
             // Estadísticas
-            if (!string.IsNullOrEmpty(lblTotalEstudiantes.Text))
+            Paragraph estadisticas = new Paragraph(new Run(lblEstadisticasAsistencia.Text))
             {
-                Paragraph estadisticas = new Paragraph()
-                {
-                    Margin = new Thickness(0, 0, 0, 20)
-                };
-                estadisticas.Inlines.Add(new Run(lblTotalEstudiantes.Text) { FontWeight = FontWeights.SemiBold });
-                estadisticas.Inlines.Add(new LineBreak());
-                estadisticas.Inlines.Add(new Run(lblPromedioAsistencia.Text) { FontWeight = FontWeights.SemiBold });
-                flowDocument.Blocks.Add(estadisticas);
-            }
-
-            // Crear tabla con los datos
-            Table tabla = new Table()
-            {
-                CellSpacing = 0,
-                BorderBrush = Brushes.Black,
-                BorderThickness = new Thickness(1)
+                FontWeight = FontWeights.Bold,
+                TextAlignment = TextAlignment.Center,
+                Margin = new Thickness(0, 0, 0, 20),
+                Foreground = Brushes.DarkBlue
             };
+            documento.Blocks.Add(estadisticas);
 
-            // Definir columnas
-            tabla.Columns.Add(new TableColumn { Width = new GridLength(2, GridUnitType.Star) }); // Estudiante
-            tabla.Columns.Add(new TableColumn { Width = new GridLength(1, GridUnitType.Star) }); // CI
-            tabla.Columns.Add(new TableColumn { Width = new GridLength(0.7, GridUnitType.Star) }); // RU
-            tabla.Columns.Add(new TableColumn { Width = new GridLength(0.7, GridUnitType.Star) }); // Grupo
-            tabla.Columns.Add(new TableColumn { Width = new GridLength(1.5, GridUnitType.Star) }); // Docente
-            tabla.Columns.Add(new TableColumn { Width = new GridLength(0.8, GridUnitType.Star) }); // Total Clases
-            tabla.Columns.Add(new TableColumn { Width = new GridLength(0.8, GridUnitType.Star) }); // Asistidas
-            tabla.Columns.Add(new TableColumn { Width = new GridLength(0.8, GridUnitType.Star) }); // Faltadas
-            tabla.Columns.Add(new TableColumn { Width = new GridLength(1, GridUnitType.Star) }); // % Asistencia
+            // Tabla de asistencia
+            Table tabla = new Table() { CellSpacing = 0 };
+            tabla.Columns.Add(new TableColumn() { Width = new GridLength(3, GridUnitType.Star) }); // Nombre
+            tabla.Columns.Add(new TableColumn() { Width = new GridLength(1.5, GridUnitType.Star) }); // CI
+            tabla.Columns.Add(new TableColumn() { Width = new GridLength(1.5, GridUnitType.Star) }); // RU
+            tabla.Columns.Add(new TableColumn() { Width = new GridLength(1, GridUnitType.Star) }); // Asistencia
 
-            // Crear grupo de filas
-            TableRowGroup tableRowGroup = new TableRowGroup();
+            TableRowGroup grupoFilas = new TableRowGroup();
 
-            // Fila de encabezados
-            TableRow headerRow = new TableRow();
-            headerRow.Background = Brushes.LightGray;
+            // Encabezado
+            TableRow encabezado = new TableRow();
+            encabezado.Cells.Add(new TableCell(new Paragraph(new Run("Nombre Completo"))
+            { FontWeight = FontWeights.Bold, TextAlignment = TextAlignment.Center }));
+            encabezado.Cells.Add(new TableCell(new Paragraph(new Run("CI"))
+            { FontWeight = FontWeights.Bold, TextAlignment = TextAlignment.Center }));
+            encabezado.Cells.Add(new TableCell(new Paragraph(new Run("RU"))
+            { FontWeight = FontWeights.Bold, TextAlignment = TextAlignment.Center }));
+            encabezado.Cells.Add(new TableCell(new Paragraph(new Run("Asistencia"))
+            { FontWeight = FontWeights.Bold, TextAlignment = TextAlignment.Center }));
+            encabezado.Background = Brushes.LightGray;
 
-            string[] headers = { "Estudiante", "CI", "RU", "Grupo", "Docente", "Total", "Asist.", "Faltas", "% Asist." };
-            foreach (string header in headers)
+            foreach (TableCell celda in encabezado.Cells)
             {
-                TableCell cell = new TableCell(new Paragraph(new Run(header) { FontWeight = FontWeights.Bold }))
-                {
-                    BorderBrush = Brushes.Black,
-                    BorderThickness = new Thickness(1),
-                    Padding = new Thickness(5),
-                    TextAlignment = TextAlignment.Center
-                };
-                headerRow.Cells.Add(cell);
+                celda.BorderBrush = Brushes.Black;
+                celda.BorderThickness = new Thickness(1);
+                celda.Padding = new Thickness(5);
             }
-            tableRowGroup.Rows.Add(headerRow);
+
+            grupoFilas.Rows.Add(encabezado);
 
             // Filas de datos
-            if (dgReporte.ItemsSource is DataView dataView)
+            if (dgReporte.ItemsSource is DataView vista)
             {
-                foreach (DataRowView row in dataView)
+                foreach (DataRowView fila in vista)
                 {
-                    TableRow dataRow = new TableRow();
+                    TableRow filaTabla = new TableRow();
+                    filaTabla.Cells.Add(new TableCell(new Paragraph(new Run(fila["NombreCompleto"].ToString()))));
+                    filaTabla.Cells.Add(new TableCell(new Paragraph(new Run(fila["CI"].ToString()))));
+                    filaTabla.Cells.Add(new TableCell(new Paragraph(new Run(fila["RU"].ToString()))));
 
-                    // Estudiante
-                    dataRow.Cells.Add(CrearCelda(row["Estudiante"].ToString()));
-                    // CI
-                    dataRow.Cells.Add(CrearCelda(row["CI"].ToString()));
-                    // RU
-                    dataRow.Cells.Add(CrearCelda(row["RU"].ToString()));
-                    // Grupo
-                    dataRow.Cells.Add(CrearCelda(row["Grupo"].ToString(), TextAlignment.Center));
-                    // Docente
-                    dataRow.Cells.Add(CrearCelda(row["Docente"].ToString()));
-                    // Total Clases
-                    dataRow.Cells.Add(CrearCelda(row["TotalClases"].ToString(), TextAlignment.Center));
-                    // Asistidas
-                    dataRow.Cells.Add(CrearCelda(row["ClasesAsistidas"].ToString(), TextAlignment.Center));
-                    // Faltadas
-                    dataRow.Cells.Add(CrearCelda(row["ClasesFaltadas"].ToString(), TextAlignment.Center));
-                    // Porcentaje
-                    double porcentaje = Convert.ToDouble(row["PorcentajeAsistencia"]);
-                    TableCell celdaPorcentaje = CrearCelda($"{porcentaje:F2}%", TextAlignment.Center);
+                    // Celda de asistencia con color
+                    string asistencia = fila["Asistencia"].ToString();
+                    Run runAsistencia = new Run(asistencia);
+                    if (asistencia == "P")
+                        runAsistencia.Foreground = Brushes.Green;
+                    else if (asistencia == "F")
+                        runAsistencia.Foreground = Brushes.Red;
+                    else if (asistencia == "N/R")
+                        runAsistencia.Foreground = Brushes.Orange;
 
-                    // Colorear según el porcentaje
-                    if (porcentaje < 70)
-                        celdaPorcentaje.Background = Brushes.LightCoral;
-                    else if (porcentaje < 85)
-                        celdaPorcentaje.Background = Brushes.LightYellow;
-                    else
-                        celdaPorcentaje.Background = Brushes.LightGreen;
+                    runAsistencia.FontWeight = FontWeights.Bold;
+                    filaTabla.Cells.Add(new TableCell(new Paragraph(runAsistencia)
+                    { TextAlignment = TextAlignment.Center }));
 
-                    dataRow.Cells.Add(celdaPorcentaje);
+                    foreach (TableCell celda in filaTabla.Cells)
+                    {
+                        celda.BorderBrush = Brushes.Gray;
+                        celda.BorderThickness = new Thickness(0.5);
+                        celda.Padding = new Thickness(5);
+                    }
 
-                    tableRowGroup.Rows.Add(dataRow);
+                    grupoFilas.Rows.Add(filaTabla);
                 }
             }
 
-            tabla.RowGroups.Add(tableRowGroup);
-            flowDocument.Blocks.Add(tabla);
+            tabla.RowGroups.Add(grupoFilas);
+            documento.Blocks.Add(tabla);
 
-            // Pie de página
-            Paragraph piePagina = new Paragraph(new Run("Reporte generado por Sistema de Gestión Académica"))
-            {
-                FontSize = 10,
-                FontStyle = FontStyles.Italic,
-                TextAlignment = TextAlignment.Center,
-                Margin = new Thickness(0, 20, 0, 0)
-            };
-            flowDocument.Blocks.Add(piePagina);
-
-            return flowDocument;
-        }
-
-        private TableCell CrearCelda(string texto, TextAlignment alineacion = TextAlignment.Left)
-        {
-            return new TableCell(new Paragraph(new Run(texto)))
-            {
-                BorderBrush = Brushes.Black,
-                BorderThickness = new Thickness(1),
-                Padding = new Thickness(5),
-                TextAlignment = alineacion
-            };
+            return documento;
         }
 
         private void btnLimpiar_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                // Limpiar selecciones
-                cbCarrera.SelectedIndex = -1;
-                cbMateria.SelectedIndex = -1;
-                cbGestion.SelectedIndex = -1;
+            cbCarrera.SelectedIndex = -1;
+            cbMateria.SelectedIndex = -1;
+            cbGestion.SelectedIndex = -1;
+            cbFecha.SelectedIndex = -1;
 
-                // Limpiar datos
-                cbMateria.ItemsSource = null;
-                dgReporte.ItemsSource = null;
+            dgReporte.ItemsSource = null;
+            lblInfoReporte.Text = "Seleccione los filtros y genere el reporte";
+            lblTotalEstudiantes.Text = "";
+            lblEstadisticasAsistencia.Text = "";
 
-                // Restablecer labels
-                lblInfoReporte.Text = "Seleccione carrera, materia y gestión para generar el reporte";
-                lblTotalEstudiantes.Text = "";
-                lblPromedioAsistencia.Text = "";
-
-                // Deshabilitar botón de imprimir
-                btnImprimir.IsEnabled = false;
-
-                // Actualizar fecha
-                lblFechaReporte.Text = $"Generado: {DateTime.Now:dd/MM/yyyy HH:mm}";
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error al limpiar el formulario: {ex.Message}",
-                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            btnImprimir.IsEnabled = false;
         }
-    }
-
-    // Converter para colorear las celdas según el porcentaje de asistencia
-    public class AsistenciaColorConverter : IValueConverter
-    {
-        public static AsistenciaColorConverter Instance { get; } = new AsistenciaColorConverter();
-
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is decimal porcentaje)
-            {
-                if (porcentaje < 70)
-                    return "Bajo";
-                else if (porcentaje < 85)
-                    return "Medio";
-                else
-                    return "Alto";
-            }
-            return "Medio";
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-
     }
 }
