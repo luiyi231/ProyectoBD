@@ -1,36 +1,33 @@
-﻿using System;
+﻿using Capa_Datos;
+using System;
 using System.Data;
 using System.Data.SqlClient;
 
 namespace Capa_Negocios
 {
-    public class ReporteNotasEstudianteNegocio
+    public class ReporteNotasEstudianteNegocio : TcpServiceBase
     {
-        private string connectionString;
-
-        public ReporteNotasEstudianteNegocio()
-        {
-            connectionString = new Capa_Datos.gDatos().ObtenerCadenaConexion();
-        }
-
         /// <summary>
         /// Obtiene todas las gestiones disponibles
         /// </summary>
         /// <returns>DataTable con las gestiones</returns>
         public DataTable ObtenerGestiones()
         {
-            DataTable tabla = new DataTable();
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_ObtenerGestiones", conn))
+                var request = new DatabaseRequest
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-                    adapter.Fill(tabla);
-                }
+                    Operation = "GET_GESTIONES"
+                };
+
+                var response = SendRequest(request);
+                return response.Success ? ConvertToDataTable(response.Data) : new DataTable();
             }
-            return tabla;
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error obteniendo gestiones: {ex.Message}");
+                return new DataTable();
+            }
         }
 
         /// <summary>
@@ -40,28 +37,23 @@ namespace Capa_Negocios
         /// <returns>DataTable con la información del estudiante</returns>
         public DataTable BuscarEstudiantePorRU(string ru)
         {
-            DataTable tabla = new DataTable();
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_BuscarEstudiantePorRU", conn))
+                var request = new DatabaseRequest
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@RU", ru);
-                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-                    adapter.Fill(tabla);
-                }
-            }
-            return tabla;
-        }
+                    Operation = "BUSCAR_ESTUDIANTE_POR_RU",
+                    RU = ru
+                };
 
-        /// <summary>
-        /// Genera el reporte de notas para un estudiante en una gestión específica
-        /// </summary>
-        /// <param name="idEstudiante">ID del estudiante</param>
-        /// <param name="idGestion">ID de la gestión</param>
-        /// <returns>DataTable con el reporte de notas</returns>
-        
+                var response = SendRequest(request);
+                return response.Success ? ConvertToDataTable(response.Data) : new DataTable();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error buscando estudiante por RU: {ex.Message}");
+                return new DataTable();
+            }
+        }
 
         /// <summary>
         /// Obtiene las estadísticas generales de un estudiante en una gestión
@@ -71,20 +63,23 @@ namespace Capa_Negocios
         /// <returns>DataTable con las estadísticas</returns>
         public DataTable ObtenerEstadisticasEstudiante(int idEstudiante, int idGestion)
         {
-            DataTable tabla = new DataTable();
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_ObtenerEstadisticasEstudiante", conn))
+                var request = new DatabaseRequest
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@ID_Estudiante", idEstudiante);
-                    cmd.Parameters.AddWithValue("@ID_Gestion", idGestion);
-                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-                    adapter.Fill(tabla);
-                }
+                    Operation = "OBTENER_ESTADISTICAS_ESTUDIANTE",
+                    StudentId = idEstudiante,
+                    IdGestion = idGestion
+                };
+
+                var response = SendRequest(request);
+                return response.Success ? ConvertToDataTable(response.Data) : new DataTable();
             }
-            return tabla;
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error obteniendo estadísticas del estudiante: {ex.Message}");
+                return new DataTable();
+            }
         }
 
         /// <summary>
@@ -94,91 +89,127 @@ namespace Capa_Negocios
         /// <returns>True si existe, False si no existe</returns>
         public bool ExisteEstudiante(string ru)
         {
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_VerificarExistenciaEstudiante", conn))
+                var request = new DatabaseRequest
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@RU", ru);
-                    object result = cmd.ExecuteScalar();
-                    return Convert.ToInt32(result) > 0;
+                    Operation = "EXISTE_ESTUDIANTE",
+                    RU = ru
+                };
+
+                var response = SendRequest(request);
+                if (response.Success && response.Data != null)
+                {
+                    // Intentar convertir la respuesta a booleano
+                    if (bool.TryParse(response.Data.ToString(), out bool existe))
+                        return existe;
+
+                    // Si no es booleano, intentar convertir a entero (1 = existe, 0 = no existe)
+                    if (int.TryParse(response.Data.ToString(), out int count))
+                        return count > 0;
                 }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error verificando existencia del estudiante: {ex.Message}");
+                return false;
             }
         }
+
+        /// <summary>
+        /// Genera el reporte de notas para un estudiante en una gestión específica
+        /// </summary>
+        /// <param name="idEstudiante">ID del estudiante</param>
+        /// <param name="idGestion">ID de la gestión</param>
+        /// <returns>DataTable con el reporte de notas</returns>
         public DataTable GenerarReporteNotas(int idEstudiante, int idGestion)
         {
-            DataTable tabla = new DataTable();
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                conn.Open();
-
-                // Primero verificar los datos con el procedimiento de debug
-                using (SqlCommand cmdDebug = new SqlCommand("sp_VerificarDatosEstudiante", conn))
+                // Primero hacer una verificación de debug si es necesario
+                var debugRequest = new DatabaseRequest
                 {
-                    cmdDebug.CommandType = CommandType.StoredProcedure;
-                    cmdDebug.Parameters.AddWithValue("@ID_Estudiante", idEstudiante);
-                    cmdDebug.Parameters.AddWithValue("@ID_Gestion", idGestion);
+                    Operation = "VERIFICAR_DATOS_ESTUDIANTE",
+                    StudentId = idEstudiante,
+                    IdGestion = idGestion
+                };
 
-                    // Esto te ayudará a ver qué datos existen en la consola de SQL Server
-                    try
-                    {
-                        cmdDebug.ExecuteNonQuery();
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error en debug: {ex.Message}");
-                    }
+                try
+                {
+                    SendRequest(debugRequest);
+                }
+                catch (Exception debugEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error en debug: {debugEx.Message}");
                 }
 
                 // Ahora ejecutar el reporte principal
-                using (SqlCommand cmd = new SqlCommand("sp_GenerarReporteNotasEstudiante", conn))
+                var request = new DatabaseRequest
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@ID_Estudiante", idEstudiante);
-                    cmd.Parameters.AddWithValue("@ID_Gestion", idGestion);
-                    cmd.CommandTimeout = 30;
-                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-                    adapter.Fill(tabla);
-                }
+                    Operation = "GENERAR_REPORTE_NOTAS_ESTUDIANTE",
+                    StudentId = idEstudiante,
+                    IdGestion = idGestion
+                };
+
+                var response = SendRequest(request);
+                return response.Success ? ConvertToDataTable(response.Data) : new DataTable();
             }
-            return tabla;
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error generando reporte de notas: {ex.Message}");
+                return new DataTable();
+            }
         }
 
-        // Método alternativo para obtener todas las notas (sin filtro de gestión)
+        /// <summary>
+        /// Método alternativo para obtener todas las notas (sin filtro de gestión)
+        /// </summary>
+        /// <param name="idEstudiante">ID del estudiante</param>
+        /// <returns>DataTable con todas las notas del estudiante</returns>
         public DataTable ObtenerTodasNotasEstudiante(int idEstudiante)
         {
-            DataTable tabla = new DataTable();
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_ObtenerTodasNotasEstudiante", conn))
+                var request = new DatabaseRequest
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@ID_Estudiante", idEstudiante);
-                    cmd.CommandTimeout = 30;
-                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-                    adapter.Fill(tabla);
-                }
+                    Operation = "OBTENER_TODAS_NOTAS_ESTUDIANTE",
+                    StudentId = idEstudiante
+                };
+
+                var response = SendRequest(request);
+                return response.Success ? ConvertToDataTable(response.Data) : new DataTable();
             }
-            return tabla;
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error obteniendo todas las notas del estudiante: {ex.Message}");
+                return new DataTable();
+            }
         }
+
+        /// <summary>
+        /// Genera el reporte de materias para un estudiante
+        /// </summary>
+        /// <param name="idEstudiante">ID del estudiante</param>
+        /// <returns>DataTable con el reporte de materias</returns>
         public DataTable GenerarReporteMaterias(int idEstudiante)
         {
-            DataTable tabla = new DataTable();
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_GenerarReporteMateriasEstudiante", conn))
+                var request = new DatabaseRequest
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@ID_Estudiante", idEstudiante);
-                    cmd.CommandTimeout = 30;
-                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-                    adapter.Fill(tabla);
-                }
+                    Operation = "GENERAR_REPORTE_MATERIAS_ESTUDIANTE",
+                    StudentId = idEstudiante
+                };
+
+                var response = SendRequest(request);
+                return response.Success ? ConvertToDataTable(response.Data) : new DataTable();
             }
-            return tabla;
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error generando reporte de materias: {ex.Message}");
+                return new DataTable();
+            }
         }
     }
 }

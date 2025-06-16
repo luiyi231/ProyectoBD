@@ -5,13 +5,13 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Capa_Datos;
 
 namespace Capa_Negocios
 {
-    public class Estudiante
+    public class Estudiante : TcpServiceBase
     {
         private int idEstudiante;
-        private string connectionString;
 
         public int IdEstudiante
         {
@@ -19,23 +19,24 @@ namespace Capa_Negocios
             set => idEstudiante = value;
         }
 
-        public Estudiante()
-        {
-            connectionString = new Capa_Datos.gDatos().ObtenerCadenaConexion();
-        }
-
         public string ObtenerNombreCompleto()
         {
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_ObtenerNombreEstudiante", conn))
+                var request = new DatabaseRequest
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@id_estudiante", idEstudiante);
-                    object result = cmd.ExecuteScalar();
-                    return result?.ToString() ?? "";
-                }
+                    Operation = "GET_STUDENT_NAME",
+                    StudentId = idEstudiante
+                };
+
+                var response = SendRequest(request);
+                return response.Success ? response.Data?.ToString() ?? "" : "";
+            }
+            catch (Exception ex)
+            {
+                // Log del error si es necesario
+                System.Diagnostics.Debug.WriteLine($"Error obteniendo nombre del estudiante: {ex.Message}");
+                return "";
             }
         }
     }
