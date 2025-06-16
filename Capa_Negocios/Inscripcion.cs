@@ -5,15 +5,15 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Capa_Datos;
 
 
 namespace Capa_Negocios
 {
-    public class Inscripcion
+    public class Inscripcion : TcpServiceBase
     {
         private int idEstudiante;
         private int codEd;
-        private string connectionString = new Capa_Datos.gDatos().ObtenerCadenaConexion();
 
         public int IdEstudiante
         {
@@ -29,99 +29,108 @@ namespace Capa_Negocios
 
         public bool Inscribir(string listaCodEd)
         {
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_InscribirMaterias", conn))
+                var request = new DatabaseRequest
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@id_estudiante", idEstudiante);
-                    cmd.Parameters.AddWithValue("@lista_codEd", listaCodEd);
-                    try
-                    {
-                        cmd.ExecuteNonQuery();
-                        return true;
-                    }
-                    catch { return false; }
-                }
+                    Operation = "INSCRIBIR_MATERIAS",
+                    StudentId = idEstudiante,
+                    ListaCodEd = listaCodEd
+                };
+
+                var response = SendRequest(request);
+                return response.Success;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error inscribiendo materias: {ex.Message}");
+                return false;
             }
         }
 
         public bool Eliminar()
         {
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_EliminarInscripcion", conn))
+                var request = new DatabaseRequest
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@id_estudiante", idEstudiante);
-                    cmd.Parameters.AddWithValue("@codEd", codEd);
-                    try
-                    {
-                        cmd.ExecuteNonQuery();
-                        return true;
-                    }
-                    catch { return false; }
-                }
+                    Operation = "ELIMINAR_INSCRIPCION",
+                    StudentId = idEstudiante,
+                    CodEd = codEd
+                };
+
+                var response = SendRequest(request);
+                return response.Success;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error eliminando inscripción: {ex.Message}");
+                return false;
             }
         }
 
         public bool ActualizarEdicion(int codEdActual, int codEdNueva)
         {
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_ActualizarInscripcionEdicion", conn))
+                var request = new DatabaseRequest
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@id_estudiante", idEstudiante);
-                    cmd.Parameters.AddWithValue("@codEdActual", codEdActual);
-                    cmd.Parameters.AddWithValue("@codEdNueva", codEdNueva);
-                    try
-                    {
-                        cmd.ExecuteNonQuery();
-                        return true;
-                    }
-                    catch { return false; }
-                }
+                    Operation = "ACTUALIZAR_EDICION",
+                    StudentId = idEstudiante,
+                    CodEdActual = codEdActual,
+                    CodEdNueva = codEdNueva
+                };
+
+                var response = SendRequest(request);
+                return response.Success;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error actualizando edición: {ex.Message}");
+                return false;
             }
         }
 
         public DataTable ObtenerMateriasInscritas(int codGestion)
         {
-            DataTable tabla = new DataTable();
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_ListarMateriasInscritas", conn))
+                var request = new DatabaseRequest
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@id_estudiante", idEstudiante);
-                    cmd.Parameters.AddWithValue("@codGestion", codGestion);
-                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-                    adapter.Fill(tabla);
-                }
+                    Operation = "GET_MATERIAS_INSCRITAS",
+                    StudentId = idEstudiante,
+                    CodGestion = codGestion
+                };
+
+                var response = SendRequest(request);
+                return response.Success ? ConvertToDataTable(response.Data) : new DataTable();
             }
-            return tabla;
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error obteniendo materias inscritas: {ex.Message}");
+                return new DataTable();
+            }
         }
 
         public DataTable ObtenerMateriasOfertadas(int codGestion)
         {
-            DataTable tabla = new DataTable();
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_MateriasOfertadasParaEstudiante", conn))
+                var request = new DatabaseRequest
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@id_estudiante", idEstudiante);
-                    cmd.Parameters.AddWithValue("@codGestion", codGestion);
-                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-                    adapter.Fill(tabla);
-                }
+                    Operation = "GET_MATERIAS_OFERTADAS",
+                    StudentId = idEstudiante,
+                    CodGestion = codGestion
+                };
+
+                var response = SendRequest(request);
+                return response.Success ? ConvertToDataTable(response.Data) : new DataTable();
             }
-            return tabla;
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error obteniendo materias ofertadas: {ex.Message}");
+                return new DataTable();
+            }
         }
     }
 }

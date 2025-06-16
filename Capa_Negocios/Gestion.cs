@@ -5,31 +5,29 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Capa_Datos;
 
 namespace Capa_Negocios
 {
-    public class Gestion
+    public class Gestion : TcpServiceBase
     {
-        private string connectionString;
-
-        public Gestion()
-        {
-            connectionString = new Capa_Datos.gDatos().ObtenerCadenaConexion();
-        }
-
         public DataTable ObtenerTodas()
         {
-            DataTable tabla = new DataTable();
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_ObtenerGestiones", conn))
+                var request = new DatabaseRequest
                 {
-                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-                    adapter.Fill(tabla);
-                }
+                    Operation = "GET_GESTIONES"
+                };
+
+                var response = SendRequest(request);
+                return response.Success ? ConvertToDataTable(response.Data) : new DataTable();
             }
-            return tabla;
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error obteniendo gestiones: {ex.Message}");
+                return new DataTable();
+            }
         }
     }
 

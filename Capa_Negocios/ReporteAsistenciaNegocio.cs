@@ -1,91 +1,93 @@
-﻿using System;
+﻿using Capa_Datos;
+using System;
 using System.Data;
 using System.Data.SqlClient;
 
 namespace Capa_Negocios
 {
-    public class ReporteAsistenciaNegocio
+    public class ReporteAsistenciaNegocio : TcpServiceBase
     {
-        private string connectionString;
-
-        public ReporteAsistenciaNegocio()
-        {
-            connectionString = new Capa_Datos.gDatos().ObtenerCadenaConexion();
-        }
-
-        // Obtener todas las carreras
         public DataTable ObtenerCarreras()
         {
-            DataTable tabla = new DataTable();
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_ObtenerCarreras", conn))
+                var request = new DatabaseRequest
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-                    adapter.Fill(tabla);
-                }
+                    Operation = "GET_CARRERAS"
+                };
+
+                var response = SendRequest(request);
+                return response.Success ? ConvertToDataTable(response.Data) : new DataTable();
             }
-            return tabla;
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error obteniendo carreras: {ex.Message}");
+                return new DataTable();
+            }
         }
 
-        // Obtener materias por carrera
         public DataTable ObtenerMateriasPorCarrera(int idCarrera)
         {
-            DataTable tabla = new DataTable();
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_ObtenerMateriasPorCarrera", conn))
+                var request = new DatabaseRequest
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@id_carrera", idCarrera);
-                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-                    adapter.Fill(tabla);
-                }
+                    Operation = "GET_MATERIAS_POR_CARRERA",
+                    IdCarrera = idCarrera
+                };
+
+                var response = SendRequest(request);
+                return response.Success ? ConvertToDataTable(response.Data) : new DataTable();
             }
-            return tabla;
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error obteniendo materias por carrera: {ex.Message}");
+                return new DataTable();
+            }
         }
 
-        // Obtener fechas de asistencia por materia y gestión
         public DataTable ObtenerFechasAsistencia(int idMateria, int idGestion)
         {
-            DataTable tabla = new DataTable();
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_ObtenerFechasAsistencia", conn))
+                var request = new DatabaseRequest
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@id_materia", idMateria);
-                    cmd.Parameters.AddWithValue("@id_gestion", idGestion);
-                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-                    adapter.Fill(tabla);
-                }
+                    Operation = "GET_FECHAS_ASISTENCIA",
+                    IdMateria = idMateria,
+                    IdGestion = idGestion
+                };
+
+                var response = SendRequest(request);
+                return response.Success ? ConvertToDataTable(response.Data) : new DataTable();
             }
-            return tabla;
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error obteniendo fechas de asistencia: {ex.Message}");
+                return new DataTable();
+            }
         }
 
-        // Generar reporte de asistencia
         public DataTable GenerarReporteAsistencia(int idCarrera, int idMateria, int idGestion, DateTime fecha)
         {
-            DataTable tabla = new DataTable();
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_ReporteAsistencia", conn))
+                var request = new DatabaseRequest
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@id_carrera", idCarrera);
-                    cmd.Parameters.AddWithValue("@id_materia", idMateria);
-                    cmd.Parameters.AddWithValue("@id_gestion", idGestion);
-                    cmd.Parameters.AddWithValue("@fecha", fecha);
-                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-                    adapter.Fill(tabla);
-                }
+                    Operation = "GENERAR_REPORTE_ASISTENCIA",
+                    IdCarrera = idCarrera,
+                    IdMateria = idMateria,
+                    IdGestion = idGestion,
+                    Fecha = fecha
+                };
+
+                var response = SendRequest(request);
+                return response.Success ? ConvertToDataTable(response.Data) : new DataTable();
             }
-            return tabla;
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error generando reporte de asistencia: {ex.Message}");
+                return new DataTable();
+            }
         }
     }
 }

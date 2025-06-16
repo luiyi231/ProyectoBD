@@ -1,71 +1,71 @@
-﻿using System;
+﻿using Capa_Datos;
+using System;
 using System.Data;
 using System.Data.SqlClient;
 
 namespace Capa_Negocios
 {
-    public class ReporteMateriasNegocio  // Cambié el nombre para evitar conflicto
+    public class ReporteMateriasNegocio : TcpServiceBase
     {
-        private string connectionString;
-
-        public ReporteMateriasNegocio()
-        {
-            connectionString = new Capa_Datos.gDatos().ObtenerCadenaConexion();
-        }
-
-        // Obtener todas las carreras
         public DataTable ObtenerCarreras()
         {
-            DataTable tabla = new DataTable();
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_ObtenerCarreras", conn))
+                var request = new DatabaseRequest
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-                    adapter.Fill(tabla);
-                }
+                    Operation = "GET_CARRERAS"
+                };
+
+                var response = SendRequest(request);
+                return response.Success ? ConvertToDataTable(response.Data) : new DataTable();
             }
-            return tabla;
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error obteniendo carreras: {ex.Message}");
+                return new DataTable();
+            }
         }
 
-        // Obtener planes de estudio por carrera
         public DataTable ObtenerPlanesPorCarrera(int idCarrera)
         {
-            DataTable tabla = new DataTable();
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_ObtenerPlanesPorCarrera", conn))
+                var request = new DatabaseRequest
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@id_carrera", idCarrera);
-                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-                    adapter.Fill(tabla);
-                }
+                    Operation = "GET_PLANES_POR_CARRERA",
+                    IdCarrera = idCarrera
+                };
+
+                var response = SendRequest(request);
+                return response.Success ? ConvertToDataTable(response.Data) : new DataTable();
             }
-            return tabla;
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error obteniendo planes por carrera: {ex.Message}");
+                return new DataTable();
+            }
         }
 
-        // Generar reporte de materias ofertadas
         public DataTable GenerarReporte(int idCarrera, int idPlanEstudio, int idGestion)
         {
-            DataTable tabla = new DataTable();
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_ReporteMaterias_Ofertadas", conn))
+                var request = new DatabaseRequest
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@id_carrera", idCarrera);
-                    cmd.Parameters.AddWithValue("@id_plan_estudio", idPlanEstudio);
-                    cmd.Parameters.AddWithValue("@id_gestion", idGestion);
-                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-                    adapter.Fill(tabla);
-                }
+                    Operation = "GENERAR_REPORTE_MATERIAS_OFERTADAS",
+                    IdCarrera = idCarrera,
+                    IdPlanEstudio = idPlanEstudio,
+                    IdGestion = idGestion
+                };
+
+                var response = SendRequest(request);
+                return response.Success ? ConvertToDataTable(response.Data) : new DataTable();
             }
-            return tabla;
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error generando reporte de materias: {ex.Message}");
+                return new DataTable();
+            }
         }
     }
 }
