@@ -9,7 +9,7 @@ namespace Capa_Datos
 {
     public class gDatos
     {
-        private string serverIP = "127.0.0.1"; // localhost
+        private string serverIP = "10.26.11.194"; // localhost
         private int serverPort = 8888;
         private string tb, cSel;
         public DataSet ds = new DataSet();
@@ -127,7 +127,7 @@ namespace Capa_Datos
     // Clase base para servicios TCP
     public class TcpServiceBase
     {
-        protected string serverIP = "127.0.0.1";
+        protected string serverIP = "10.26.11.194";
         protected int serverPort = 8888;
 
         protected DatabaseResponse SendRequest(DatabaseRequest request)
@@ -136,6 +136,8 @@ namespace Capa_Datos
             {
                 using (TcpClient client = new TcpClient())
                 {
+                    client.SendTimeout = 30000; // 30 segundos para enviar
+                    client.ReceiveTimeout = 30000; // 30 segundos para recibir
                     client.Connect(serverIP, serverPort);
                     NetworkStream stream = client.GetStream();
 
@@ -157,7 +159,7 @@ namespace Capa_Datos
                 return new DatabaseResponse
                 {
                     Success = false,
-                    ErrorMessage = ex.Message
+                    ErrorMessage = $"Error de conexión: {ex.Message}"
                 };
             }
         }
@@ -165,7 +167,20 @@ namespace Capa_Datos
         protected DataTable ConvertToDataTable(object data)
         {
             if (data == null) return new DataTable();
-            return JsonConvert.DeserializeObject<DataTable>(data.ToString());
+
+            try
+            {
+                // Primero intenta deserializar directamente como DataTable
+                if (data is DataTable dt)
+                    return dt;
+
+                // Si no, intenta deserializar desde JSON
+                return JsonConvert.DeserializeObject<DataTable>(data.ToString());
+            }
+            catch
+            {
+                return new DataTable();
+            }
         }
     }
 }
